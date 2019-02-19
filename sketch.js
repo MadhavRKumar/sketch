@@ -1,7 +1,7 @@
 const canvasSketch = require('canvas-sketch');
 
 const settings = {
-  dimensions: [2048, 2048]
+  dimensions: [1800, 2400]
 };
 
 const sketch = () => {
@@ -13,10 +13,11 @@ const sketch = () => {
         s: 70,
         l: 16
       },
+      //background
       {
-        h: 51,
-        s: 50,
-        l: 84
+        h: 53,
+        s: 81,
+        l: 94
       },
       {
         h: 249,
@@ -39,7 +40,7 @@ const sketch = () => {
 
     ]
 
-    context.fillStyle = '#eae4c0';
+    context.fillStyle = '#fcf9e3';
     context.fillRect(0, 0, width, height);
 
     // let count = 0;
@@ -76,7 +77,7 @@ const sketch = () => {
       }
       else {
         cols = getRandomInt(50, 100);
-        rows = getRandomInt(3, 20);
+        rows = getRandomInt(3, 50);
         colors = vertColors;
       }
       let wMargin = 1,
@@ -151,7 +152,8 @@ const sketch = () => {
         }
 
         if (points.length > 2) {
-          let color = getRandomElem(colors);
+          let index = Math.floor(map(points[0].y, 0, height, 0, colors.length));
+          let color = Math.random() < 0.9 ? colors[index] : getRandomElem(colors);
 
           context.strokeStyle = `hsla(${color.h}, ${color.s*getRandom(0.8, 1.2)}%, ${color.l*getRandom(0.9, 1.1)}%, ${getRandom(0.75,0.9)})`;
           let i;
