@@ -1,4 +1,5 @@
 const canvasSketch = require('canvas-sketch');
+const random = require('canvas-sketch-util/random');
 
 const settings = {
   dimensions: [1800, 2400]
@@ -6,54 +7,72 @@ const settings = {
 
 const sketch = () => {
   return ({ context, width, height }) => {
-    context.fillStyle = '#fdfffc';
+    context.fillStyle = '#eac29f';
     context.fillRect(0, 0, width, height);
     let colors = [
+      // {
+      //   h: 48,
+      //   s: 58,
+      //   l: 63
+      // },
+      // {
+      //   h: 48,
+      //   s: 58,
+      //   l: 63
+      // },
+      // //hsl(204, 43%, 76%)
+      // {
+      //   h: 204,
+      //   s: 43,
+      //   l: 50
+      // },
+      // //hsl(336, 52%, 36%)
+      // {
+      //   h: 336,
+      //   s: 52,
+      //   l: 36
+      // },
+      
+      // {
+      //   h: 0,
+      //   s: 0,
+      //   l: 10
+      // },
+      // {
+      //   h: 0,
+      //   s: 0,
+      //   l: 99
+      // }
 
-      //hsl(48, 87%, 53%)
+      //hsl(358, 77%, 43%)
       {
-        h: 48,
-        s: 58,
-        l: 63
-      },
-      {
-        h: 48,
-        s: 58,
-        l: 63
-      },
-      //hsl(204, 43%, 76%)
-      {
-        h: 204,
-        s: 43,
-        l: 50
-      },
-      //hsl(336, 52%, 36%)
-      {
-        h: 336,
-        s: 52,
-        l: 36
+        h : 358,
+        s : 77,
+        l : 43,
       },
 
-      {
-        h: 0,
-        s: 0,
-        l: 10
-      }
 
+    // hsl(28, 64%, 77%)
+    {
+      h : 28,
+      s : 64,
+      l : 77
+    }
 
 
     ];
 
-    for (let c = 0; c < 2; c++) {
-      let N = 10,
-        M = 200,
+    for (let c = 0; c < 40; c++) {
+      let N = getRandomInt(3, 35),
+        M = getRandomInt(3, 72),
         gridX = width / M,
-        gridY = height / N
-      gridYBase = gridY;
+        gridY = height / N,
+      gridYBase = gridY,
+      randOff = getRandomInt(2, 20);
 
-
-      for (let i = 0; i * gridX < width; i++) {
         for (let j = 0; j * gridY < height; j++) {
+          for (let i = 0; i * gridX < width; i++) {
+
           let points = new Array(4);
           let x, y, x2, y2;
           let prob = Math.random();
@@ -85,14 +104,26 @@ const sketch = () => {
 
           }
           points[0] = { x: x, y: y };
-          points[1] = { x: getRandom(i * gridX, i * gridX + gridX), y: getRandom(j * gridY, j * gridY + gridY) };
-          points[2] = { x: getRandom(i * gridX, i * gridX + gridX), y: getRandom(j * gridY, j * gridY + gridY) }
+          points[1] = { x: getRandom(i * gridX , i * gridX + gridX), y: getRandom(j * gridY, j * gridY + gridY) };
+          points[2] = { x: getRandom(i * gridX , i * gridX + gridX), y: getRandom(j * gridY, j * gridY + gridY) }
           points[3] = { x: x2, y: y2 };
+          // if(random.noise3D(Math.sin(x/500), Math.cos(y/800), Math.tan((x+y)/1000)) > 0.01) {
+          let n = 2;
+          let distFromCenter = Math.hypot(points[0].x - width/2, points[0].y - height/4);
+          let drawProb = quadMap(distFromCenter, 0, (n-1)*width/n, 0.75, 0.015);
+          // console.log({drawProb, distFromCenter});
+          if(random.value() < drawProb) {
+          drawLine(points);
+          }
 
-          drawLine(points, true);
+          //gridY += getRandom(-randOff, randOff);
 
         }
-        gridY += getRandom(-7.5, 15);
+        if(gridX - 10 > 10) {
+          gridX -= getRandom(5, 10);
+        }
+
+        gridY = gridYBase;
 
 
       }
@@ -101,37 +132,34 @@ const sketch = () => {
     }
 
 
-    function drawLine(points, first) {
+    function drawLine(points) {
       let tInc = 0.05;
+      let len = Math.hypot(points[0].x - points[3].x, points[0].y - points[3].y);
+      let pointCount = map(len, 0, height/3, 0, 1000);
       let dist = Math.hypot(points[0].x - width / 2 + getRandom(-width / 8, width / 8), points[0].y - height / 2 + getRandom(-height / 12, height / 2));
       let index = clamp(Math.floor(map(dist, 0, width / 2, 0, colors.length)), 0, colors.length - 1);
-      let color = Math.random() < 0.75 ? colors[index] : getRandomElem(colors);
-      context.strokeStyle = `hsla(${color.h}, ${color.s * getRandom(0.9, 1.1)}%, ${color.l * getRandom(0.9, 1.1)}%, ${getRandom(0.5, 0.9)})`;
-      context.lineWidth = Math.random() < 0.95 ? map(dist, 0, width / 2, 8, 1.5) : getRandom(1.5, 8);
+      let color = Math.random() < 0.33 ? colors[index] : getRandomElem(colors);
+
+      let w = Math.random() < 0.95 ? map(dist, 0, width / 2, 10, 1.5) : getRandom(1.5, 8);
 
       let offset = 0;
-      let lineAmount = getRandomInt(2, 8);
-      let offInc = map(context.lineWidth, 1.5, 8, 3, 10);
+      let lineAmount = getRandomInt(4, 8);
+      let offInc = map(w, 1.5, 10, 0.5, 6);
 
 
       for (let lines = 0; lines < lineAmount; lines++) {
         context.lineWidth *= getRandom(0.1, 1.5);
 
 
-        for (let t = tInc; t < 1.000 + tInc; t += tInc) {
-
-          let prevPoint = getPoint(points, t - tInc);
-          let nextPoint = getPoint(points, t);
-
-
-
-          context.beginPath();
-          context.moveTo(prevPoint.x + offset, prevPoint.y);
-          context.lineTo(nextPoint.x + offset, nextPoint.y);
-          context.stroke();
+        for (let n = 0; n < pointCount; n++) {
+          w = Math.random() < 0.5 ? map(dist, 0, width / 2, 3.5, 0.5) : getRandom(0.5, 3.5);
+          let point = getPoint(points, Math.random());
+          context.strokeStyle = `hsla(${color.h}, ${color.s * getRandom(0.9, 1.1)}%, ${color.l * getRandom(0.9, 1.1)}%, ${getRandom(0.1, 0.4)})`;
+          context.fillStyle = context.strokeStyle;
+          context.fillRect(point.x + offset, point.y - offset, w, w);
 
         }
-        offset += getRandom(0.1, 1.5) * offInc;
+        offset += getRandom(0.1, 3) * offInc;
 
       }
 
@@ -157,7 +185,7 @@ const sketch = () => {
     }
 
     function getRandom(min, max) {
-      return Math.random() * (max - min) + min
+      return random.value() * (max - min) + min
     }
 
     function map(n, start1, stop1, start2, stop2) {
@@ -172,12 +200,11 @@ const sketch = () => {
 
       t /= d;
 
-      return -c * t * (t - 2) + b;
-
+      return -c * t*(t-2) + b
     }
 
     function getRandomElem(arr) {
-      return arr[Math.floor(Math.random() * arr.length)];
+      return arr[Math.floor(random.value() * arr.length)];
     }
 
     function getRandomInt(min, max) {
