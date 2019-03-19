@@ -2,7 +2,7 @@ const canvasSketch = require('canvas-sketch');
 const random = require('canvas-sketch-util/random');
 
 const settings = {
-  dimensions: [3508, 4961]
+  dimensions: [4800, 6000]
 };
 
 const sketch = () => {
@@ -80,7 +80,7 @@ const sketch = () => {
             context.fillStyle = context.strokeStyle;
 
             context.beginPath();
-            context.arc(x, y, clamp(random.gaussian(2, 2), 0, 8), 0, 2 * Math.PI);
+            context.arc(x, y, clamp(random.gaussian(4, 2), 0, 8), 0, 2 * Math.PI);
             context.fill();
 
             let dist = ySpacing * random.gaussian(1, 0.5) / 2;
@@ -96,12 +96,12 @@ const sketch = () => {
             let strokeIndex = Math.floor(map(x + getRandom(-width / 4, width / 4), 0, width, 0, colors.length));
             context.strokeStyle = colors[strokeIndex];
 
-            let angle = random.noise3D(x / 1000, y / 1000, (count / 5000)) * 2 * Math.PI;
+            let angle = random.noise3D(x / 2000, y / 2000, (count / 3000)) * 2 * Math.PI;
             let hx = Math.cos(angle) * dist;
             let hy = Math.sin(angle) * dist;
             context.moveTo(x - hx * fract, y - hy * (fract));
             context.lineTo(x + hx * (1 - fract), y + hy * (1 - fract));
-            context.lineWidth = random.gaussian(3, 2);
+            context.lineWidth = random.gaussian(4, 2);
             context.stroke();
 
             context.closePath();
