@@ -2,7 +2,7 @@ const canvasSketch = require('canvas-sketch');
 const random = require('canvas-sketch-util/random');
 
 const settings = {
-  dimensions: [2048, 2048]
+  dimensions: [3000, 3000]
 };
 
 const sketch = () => {
@@ -37,7 +37,7 @@ const sketch = () => {
 
     ]
 
-    let palette = getRandomElem(palettes);
+    let palette = palettes[2];
 
     let bg = palette.bg;
     context.fillStyle = bg;
@@ -306,7 +306,7 @@ const sketch = () => {
 
       if (draw) {
         context.beginPath();
-        context.lineWidth = random.gaussian(16, 2);
+        context.lineWidth = random.gaussian(18, 2);
         context.arc(headCent.x, headCent.y, headRadius, 0, 2 * Math.PI);
         context.stroke();
         context.fill();
