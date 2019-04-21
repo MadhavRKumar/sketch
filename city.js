@@ -9,14 +9,16 @@ const sketch = () => {
   return ({ context, width, height }) => {
     context.fillStyle = 'white';
     context.fillRect(0, 0, width, height);
-    let w = width/10;
+    let w = width/9;
     let h = height/5;
-    poisson(false, [], 25, 0.05);
+    //poisson(false, [], 25, 0.05);
 
     context.lineWidth = 2;
-    for(let y = height/2.5; y <= height + h; y += getRandom(h/2, h)) {
+ 
+
+    for(let y = h*2; y <= height + h; y += getRandom(h/2, h)) {
       let c = random.chance(0.5);
-      for(let x = c ? -w/2 : width + w/2; x <= width + w && x >= -w; x = c ? x+getRandom(w/1.5, w) : x-getRandom(w/1.5,w)) {
+      for(let x = c ? -w/2 : width + w/2; x <= width + w && x >= -w; x = c ? x+getRandom(w/2, w) : x-getRandom(w/2,w)) {
         drawBuilding(x, y, getRandom(w/1.1, w*1.5), getRandom(h, h*3));
       
     }
@@ -25,9 +27,23 @@ const sketch = () => {
 
 
     function drawBuilding(x, y, w, h) {
-      let windowW = w/2.5;
-      let windowH = h/10;
+      let windowCo = getRandomInt(3, 6);
+      let windowRow = getRandomInt(5, 8);
+      let windowW = w/windowCo;
+      let windowH = h/windowRow;
       drawRect(x, y, w, h);
+      let corner = {x: x, y: y};
+
+      corner.x -= w/2;
+      corner.y -= h/2;
+
+      let pos = {x: corner.x+windowW/2, y: corner.y + windowH/2};
+
+      for(pos.x = corner.x+windowW/2; pos.x < x + w/2; pos.x += windowW) {
+        for(pos.y = corner.y + windowH/2; pos.y < (y + h/2 - windowH); pos.y += windowH) {
+          drawRect(pos.x, pos.y, windowW*0.5, windowH*0.5);
+        }
+      }
     }
 
     function drawRect(x, y, w, h) {
@@ -70,11 +86,11 @@ const sketch = () => {
       ctx.moveTo(start.x, start.y);
       }
       let prev = start;
-      for(let t = 0; t <= 2.0; t += dt) {
+      for(let t = dt; t <= 2.0; t += dt) {
         let cur = getSquigglePoint(start, end, t);
         let tan = {x: start.x - end.x, y: start.y - end.y};
         let normal = {x:-tan.y, y: tan.x};
-        nomral = normalize(normal);
+        normal = normalize(normal);
         let ctrl = getSquiggleControlPoint(prev, cur, normal);
         ctx.quadraticCurveTo(ctrl.x, ctrl.y, cur.x, cur.y);
 
@@ -170,10 +186,10 @@ const sketch = () => {
         if (strokeSize) {
           let d = dist(p.x, p.y, width / 2, height / 2);
           let lw = map(d, 0, Math.sqrt(2) * width / 2, strokeSize, 0);
-          context.lineWidth = random.gaussian(strokeSize, 0.05);
+          context.lineWidth = strokeSize; //random.gaussian(strokeSize, 0.05);
         }
         else {
-          context.lineWidth = random.gaussian(3, 0.06);
+          context.lineWidth = random.gaussian(1, 0.06);
         }
 
 
