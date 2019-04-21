@@ -11,15 +11,13 @@ const sketch = () => {
     context.fillRect(0, 0, width, height);
     let w = width/10;
     let h = height/5;
-
-    poisson(true, [], 40);
-    context.fillRect(0, height/3, width, height);
+    poisson(false, [], 25, 0.05);
 
     context.lineWidth = 2;
-    for(let y = height/3; y <= height + h; y += getRandom(h/2, h)) {
+    for(let y = height/2.5; y <= height + h; y += getRandom(h/2, h)) {
       let c = random.chance(0.5);
-      for(let x = c ? -w/2 : width + w/2; x <= width + w && x >= -w; x = c ? x+getRandom(w/1.5, w) : x-getRandom(w/2,w)) {
-        drawBuilding(x, y, getRandom(w, w*1.5), getRandom(h, h*1.5));
+      for(let x = c ? -w/2 : width + w/2; x <= width + w && x >= -w; x = c ? x+getRandom(w/1.5, w) : x-getRandom(w/1.5,w)) {
+        drawBuilding(x, y, getRandom(w/1.1, w*1.5), getRandom(h, h*3));
       
     }
   }
@@ -27,6 +25,8 @@ const sketch = () => {
 
 
     function drawBuilding(x, y, w, h) {
+      let windowW = w/2.5;
+      let windowH = h/10;
       drawRect(x, y, w, h);
     }
 
@@ -53,20 +53,29 @@ const sketch = () => {
       let ctx = p || context;
       let distance = dist(start.x, start.y, end.x, end.y);
       let dt;
-      if (distance < 200) {
+      
+      if (distance < 100) {
+        dt = 1;
+      }
+      else if (distance < 200) {
         dt = 0.5;
       } else if (dist < 400) {
         dt = 0.3;
       } else {
         dt = 0.2;
       }
+
+
       if(moveTo) {
       ctx.moveTo(start.x, start.y);
       }
       let prev = start;
       for(let t = 0; t <= 2.0; t += dt) {
         let cur = getSquigglePoint(start, end, t);
-        let ctrl = getSquiggleControlPoint(prev, cur);
+        let tan = {x: start.x - end.x, y: start.y - end.y};
+        let normal = {x:-tan.y, y: tan.x};
+        nomral = normalize(normal);
+        let ctrl = getSquiggleControlPoint(prev, cur, normal);
         ctx.quadraticCurveTo(ctrl.x, ctrl.y, cur.x, cur.y);
 
         prev = cur;
@@ -86,14 +95,14 @@ const sketch = () => {
               y: start.y + (start.y - end.y) * polyTerm};
     }
 
-    function getSquiggleControlPoint(prev, cur) {
+    function getSquiggleControlPoint(prev, cur, norm) {
       let midPoint = { x: (prev.x + cur.x)/2, y: (prev.y + cur.y)/2 };
       
       let xDisplace = getRandom(-5, 5);
       let yDisplace = getRandom(-5, 5);
 
-      midPoint.x += xDisplace;
-      midPoint.y += yDisplace;
+      midPoint.x += (xDisplace*norm.x);
+      midPoint.y += (yDisplace*norm.y);
 
       return midPoint;
     }
@@ -118,7 +127,7 @@ const sketch = () => {
         }
       }
 
-      let p0 = { x: getRandom(0, width), y: getRandom(0, height) };
+      let p0 = { x: getRandom(0, width), y: getRandom(0, height/3) };
       active.push(p0);
       points.push(p0);
       for (let p of points) {
@@ -156,45 +165,40 @@ const sketch = () => {
 
       context.lineCap = "round";
       let filterPoints = points.filter(p => !prePoints.includes(p));
-      let val = random.gaussian(1, 0.1);
+      let val = random.gaussian(1, 0.05);
       for (let p of filterPoints) {
         if (strokeSize) {
           let d = dist(p.x, p.y, width / 2, height / 2);
           let lw = map(d, 0, Math.sqrt(2) * width / 2, strokeSize, 0);
-          context.lineWidth = random.gaussian(lw, 2);
+          context.lineWidth = random.gaussian(strokeSize, 0.05);
         }
         else {
           context.lineWidth = random.gaussian(3, 0.06);
         }
 
-        context.beginPath();
 
         if (point || random.value() < chance) {
-          //console.log(context.lineWidth);
           context.arc(p.x, p.y, 1, 0, 2 * Math.PI);
           context.stroke();
         }
         else {
-          let a = random.noise3D(p.x/10000, p.y/500, val) * 2 * Math.PI;
-          let x = Math.cos(a);
-          let y = Math.sin(a);
-          // let [x, y] = random.onCircle();
-          let mag = cellSize / random.gaussian(3, 0.5);
-          let points = new Array(4);
-          points[0] = { x: p.x - x * mag, y: p.y - y * mag }
-          points[3] = { x: p.x + x * mag, y: p.y + y * mag }
-          points[1] = { x: getRandom(points[0].x - 10, points[3].x + 10), y: getRandom(points[0].y, points[3].y) };
-          points[2] = { x: getRandom(points[0].x - 10, points[3].x + 10), y: getRandom(points[0].y, points[3].y) };
-          drawLine(points,true, 0.1);
+          let mag = cellSize/random.gaussian(3, 0.5);
+
+          for(let a = Math.PI/4; a <= Math.PI;  a += Math.PI/4) {
+            let start = {x: p.x + Math.cos(a)*mag, y: p.y + Math.sin(a)*mag};
+            let end = {x: p.x + Math.cos(a+Math.PI)*mag, y: p.y + Math.sin(a+Math.PI)*mag};
+            drawLine(start, end, null, true);
+            context.stroke();
+          }
+
         }
-        context.closePath();
 
       }
     }
 
     function isValid(p, grid, cellsize, rows, cols, radius) {
 
-      if (p.x < 0 || p.x >= width || p.y < 0 || p.y >= height) {
+      if (p.x < 0 || p.x >= width || p.y < 0 || p.y >= height/3) {
         return false;
       }
       let xIndex = Math.floor(p.x / cellsize);
