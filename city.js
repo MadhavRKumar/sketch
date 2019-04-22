@@ -2,61 +2,96 @@ const canvasSketch = require('canvas-sketch');
 const random = require('canvas-sketch-util/random');
 
 const settings = {
-  dimensions: [ 2048, 2048 ]
+  dimensions: [2400, 3600]
 };
 
 const sketch = () => {
   return ({ context, width, height }) => {
-    context.fillStyle = 'white';
+    context.fillStyle = '#FFFFFA';
     context.fillRect(0, 0, width, height);
-    let w = width/9;
-    let h = height/5;
-    //poisson(false, [], 25, 0.05);
+    let highlight = '#edf060'
+    let bg = context.fillStyle;
+    let stroke ='#111111'
+    context.strokeStyle = stroke;
 
-    context.lineWidth = 2;
- 
 
-    for(let y = h*2; y <= height + h; y += getRandom(h/2, h)) {
+    context.save();
+    let wMargin = width / 6;
+    let hMargin = wMargin;
+
+    let path = new Path2D();
+    path.rect(wMargin, hMargin, width - 2 * wMargin, height - 2 * hMargin);
+    context.clip(path);
+
+    let w = width / 9;
+    let h = height / 5;
+    poisson(false, [], 37.5, 0.05);
+
+    context.lineWidth = 3;
+
+
+    for (let y = h * 2.5; y <= height + h; y += getRandom(h / 2, h)) {
       let c = random.chance(0.5);
-      for(let x = c ? -w/2 : width + w/2; x <= width + w && x >= -w; x = c ? x+getRandom(w/2, w) : x-getRandom(w/2,w)) {
-        drawBuilding(x, y, getRandom(w/1.1, w*1.5), getRandom(h, h*3));
-      
+      for (let x = c ? -w / 2 : width + w / 2; x <= width + w && x >= -w; x = c ? x + getRandom(w / 2, w) : x - getRandom(w / 2, w)) {
+        drawBuilding(x, y, getRandom(w / 1.1, w * 1.5), getRandom(h, h * 3));
+
+      }
     }
-  }
+    context.restore();
+    context.lineWidth = 5;
+    drawRect(width / 2, height / 2, width - 2 * wMargin, height - 2 * hMargin, true);
+
 
 
 
     function drawBuilding(x, y, w, h) {
       let windowCo = getRandomInt(3, 6);
-      let windowRow = getRandomInt(5, 8);
-      let windowW = w/windowCo;
-      let windowH = h/windowRow;
+      let windowRow = getRandomInt(windowCo + 2, windowCo + 3);
+      let windowW = w / windowCo;
+      let windowH = h / windowRow;
+      context.fillStyle = bg;
+      context.strokeStyle = stroke;
       drawRect(x, y, w, h);
-      let corner = {x: x, y: y};
+      let corner = { x: x, y: y };
 
-      corner.x -= w/2;
-      corner.y -= h/2;
+      corner.x -= w / 2;
+      corner.y -= h / 2;
 
-      let pos = {x: corner.x+windowW/2, y: corner.y + windowH/2};
+      let pos = { x: corner.x + windowW / 2, y: corner.y + windowH / 2 };
 
-      for(pos.x = corner.x+windowW/2; pos.x < x + w/2; pos.x += windowW) {
-        for(pos.y = corner.y + windowH/2; pos.y < (y + h/2 - windowH); pos.y += windowH) {
-          drawRect(pos.x, pos.y, windowW*0.5, windowH*0.5);
+      for (pos.x = corner.x + windowW / 2; pos.x < x + w / 2; pos.x += windowW) {
+        for (pos.y = corner.y + windowH / 2; pos.y < (y + h / 2 - windowH); pos.y += windowH) {
+          let xOff = getRandom(-5, 5);
+          let yOff = getRandom(-5, 5);
+          let wOff = getRandom(0.4, 0.6);
+          let hOff = getRandom(0.4, 0.6);
+
+          if (random.chance(0.1)) {
+            context.fillStyle = highlight;
+            context.strokeStyle = highlight;
+            drawRect(pos.x + xOff, pos.y + yOff, windowW * (wOff+0.05), windowH * (hOff+0.05));
+          }
+            context.fillStyle = bg;
+            context.strokeStyle = stroke;
+          
+          drawRect(pos.x + xOff, pos.y + yOff, windowW * wOff, windowH * hOff, true);
+
         }
       }
     }
 
-    function drawRect(x, y, w, h) {
-      let corner = {x: x, y: y};
+    function drawRect(x, y, w, h, noFill) {
+      let corner = { x: x, y: y };
 
-      corner.x -= w/2;
-      corner.y -= h/2;
+      corner.x -= w / 2;
+      corner.y -= h / 2;
       let path = new Path2D();
-      drawLine({x: corner.x, y: corner.y + h}, corner, path, true);
-      drawLine(corner, {x: corner.x + w, y: corner.y}, path, false);
-      drawLine({x: corner.x + w, y: corner.y}, {x: corner.x + w, y: corner.y + h}, path, false)
-      drawLine({x: corner.x + w, y: corner.y + h}, {x: corner.x, y: corner.y + h}, path, false)
-      context.fill(path);
+      drawLine({ x: corner.x, y: corner.y + h }, corner, path, true);
+      drawLine(corner, { x: corner.x + w, y: corner.y }, path, false);
+      drawLine({ x: corner.x + w, y: corner.y }, { x: corner.x + w, y: corner.y + h }, path, false)
+      drawLine({ x: corner.x + w, y: corner.y + h }, { x: corner.x, y: corner.y + h }, path, false)
+      if (!noFill)
+        context.fill(path);
       context.stroke(path);
       path.closePath();
 
@@ -69,7 +104,7 @@ const sketch = () => {
       let ctx = p || context;
       let distance = dist(start.x, start.y, end.x, end.y);
       let dt;
-      
+
       if (distance < 100) {
         dt = 1;
       }
@@ -82,14 +117,14 @@ const sketch = () => {
       }
 
 
-      if(moveTo) {
-      ctx.moveTo(start.x, start.y);
+      if (moveTo) {
+        ctx.moveTo(start.x, start.y);
       }
       let prev = start;
-      for(let t = dt; t <= 2.0; t += dt) {
+      for (let t = dt; t <= 2.0; t += dt) {
         let cur = getSquigglePoint(start, end, t);
-        let tan = {x: start.x - end.x, y: start.y - end.y};
-        let normal = {x:-tan.y, y: tan.x};
+        let tan = { x: start.x - end.x, y: start.y - end.y };
+        let normal = { x: -tan.y, y: tan.x };
         normal = normalize(normal);
         let ctrl = getSquiggleControlPoint(prev, cur, normal);
         ctx.quadraticCurveTo(ctrl.x, ctrl.y, cur.x, cur.y);
@@ -97,28 +132,30 @@ const sketch = () => {
         prev = cur;
       }
 
-      
+
 
     }
 
     function getSquigglePoint(start, end, t) {
-      let tau = t/2.0;
+      let tau = t / 2.0;
       let polyTerm = 15 * Math.pow(tau, 4)
-                    - 6 * Math.pow(tau, 5)
-                    - 10 * Math.pow(tau, 3);
+        - 6 * Math.pow(tau, 5)
+        - 10 * Math.pow(tau, 3);
 
-      return {x: start.x + (start.x - end.x) * polyTerm,
-              y: start.y + (start.y - end.y) * polyTerm};
+      return {
+        x: start.x + (start.x - end.x) * polyTerm,
+        y: start.y + (start.y - end.y) * polyTerm
+      };
     }
 
     function getSquiggleControlPoint(prev, cur, norm) {
-      let midPoint = { x: (prev.x + cur.x)/2, y: (prev.y + cur.y)/2 };
-      
+      let midPoint = { x: (prev.x + cur.x) / 2, y: (prev.y + cur.y) / 2 };
+
       let xDisplace = getRandom(-5, 5);
       let yDisplace = getRandom(-5, 5);
 
-      midPoint.x += (xDisplace*norm.x);
-      midPoint.y += (yDisplace*norm.y);
+      midPoint.x += (xDisplace * norm.x);
+      midPoint.y += (yDisplace * norm.y);
 
       return midPoint;
     }
@@ -143,7 +180,7 @@ const sketch = () => {
         }
       }
 
-      let p0 = { x: getRandom(0, width), y: getRandom(0, height/3) };
+      let p0 = { x: getRandom(wMargin, width - wMargin), y: getRandom(hMargin, height / 2) };
       active.push(p0);
       points.push(p0);
       for (let p of points) {
@@ -198,11 +235,11 @@ const sketch = () => {
           context.stroke();
         }
         else {
-          let mag = cellSize/random.gaussian(3, 0.5);
+          let mag = cellSize / random.gaussian(3, 0.5);
 
-          for(let a = Math.PI/4; a <= Math.PI;  a += Math.PI/4) {
-            let start = {x: p.x + Math.cos(a)*mag, y: p.y + Math.sin(a)*mag};
-            let end = {x: p.x + Math.cos(a+Math.PI)*mag, y: p.y + Math.sin(a+Math.PI)*mag};
+          for (let a = Math.PI / 4; a <= Math.PI; a += Math.PI / 4) {
+            let start = { x: p.x + Math.cos(a) * mag, y: p.y + Math.sin(a) * mag };
+            let end = { x: p.x + Math.cos(a + Math.PI) * mag, y: p.y + Math.sin(a + Math.PI) * mag };
             drawLine(start, end, null, true);
             context.stroke();
           }
@@ -214,7 +251,7 @@ const sketch = () => {
 
     function isValid(p, grid, cellsize, rows, cols, radius) {
 
-      if (p.x < 0 || p.x >= width || p.y < 0 || p.y >= height/3) {
+      if (p.x < wMargin || p.x >= width - wMargin || p.y < hMargin || p.y >= height / 2) {
         return false;
       }
       let xIndex = Math.floor(p.x / cellsize);
@@ -249,161 +286,161 @@ const sketch = () => {
 
     function drawQuadraticLine(points, draw, inc) {
       let tInc = inc || 0.001;
-  
+
       let ps = [];
       context.beginPath();
-  
-      if(draw) {
-      context.moveTo(points[0].x, points[0].y);
-      context.quadraticCurveTo(points[1].x, points[1].y, points[2].x, points[2].y);
-      context.stroke();
-      context.closePath();
+
+      if (draw) {
+        context.moveTo(points[0].x, points[0].y);
+        context.quadraticCurveTo(points[1].x, points[1].y, points[2].x, points[2].y);
+        context.stroke();
+        context.closePath();
       }
       context.beginPath();
       for (let t = 0; t < 1 + tInc; t += tInc) {
         let point = getQuadraticPoint(points, t);
         ps.push(point);
       }
-  
-  
+
+
       context.closePath();
-  
+
       return ps;
     }
-  
-  
-  
+
+
+
     function getQuadraticPoint(points, t) {
       let omt = 1 - t;
       let omt2 = omt * omt;
       let t2 = t * t;
       let point = { x: 0, y: 0 };
       let [p0, p1, p2] = points;
-      point.x = omt2*p0.x + 2*t*omt*p1.x + t2*p2.x;
-  
-      point.y = omt2*p0.y + 2*t*omt*p1.y + t2*p2.y;
-  
+      point.x = omt2 * p0.x + 2 * t * omt * p1.x + t2 * p2.x;
+
+      point.y = omt2 * p0.y + 2 * t * omt * p1.y + t2 * p2.y;
+
       return point;
     }
-  
+
     function getQuadraticTangent(points, t) {
-      let [p0, p1, p2]  = points;
-      let point = {x: 0, y: 0};
-  
-      point.x = 2*(p0.x*(t-1) - p1.x*(2*t-1) + p2.x*t);
-      point.y = 2*(p0.y*(t-1) - p1.y*(2*t-1) + p2.y*t);
-  
+      let [p0, p1, p2] = points;
+      let point = { x: 0, y: 0 };
+
+      point.x = 2 * (p0.x * (t - 1) - p1.x * (2 * t - 1) + p2.x * t);
+      point.y = 2 * (p0.y * (t - 1) - p1.y * (2 * t - 1) + p2.y * t);
+
       return point;
     }
-  
+
     function drawCubicLine(points, draw, inc) {
       let tInc = inc || 0.001;
       let ps = [];
       context.beginPath();
-  
+
       context.moveTo(points[0].x, points[0].y);
       for (let t = 0; t < 1 + tInc; t += tInc) {
         let point = geCubicPoint(points, t);
         ps.push(point);
-  
+
         if (draw) {
           context.lineTo(point.x, point.y);
           context.stroke();
         }
-  
+
       }
-  
+
       context.stroke();
-  
+
       context.closePath();
-  
+
       return ps;
     }
-  
-  
-  
+
+
+
     function geCubicPoint(points, t) {
       let omt = 1 - t;
       let omt2 = omt * omt;
       let t2 = t * t;
       let point = { x: 0, y: 0 };
-  
+
       point.x = points[0].x * (omt2 * omt) +
         points[1].x * (3 * omt2 * t) +
         points[2].x * (3 * omt * t2) +
         points[3].x * (t2 * t);
-  
+
       point.y = points[0].y * (omt2 * omt) +
         points[1].y * (3 * omt2 * t) +
         points[2].y * (3 * omt * t2) +
         points[3].y * (t2 * t);
-  
+
       return point;
     }
-  
+
     // does not alter point, returns normalized vector
     function normalize(point) {
       let mag = Math.hypot(point.x, point.y);
-  
-      let p = {x: point.x/mag, y: point.y/mag};
-  
+
+      let p = { x: point.x / mag, y: point.y / mag };
+
       return p;
     }
-  
+
     function dot(p1, p2) {
       return p1.x * p2.x + p1.y * p2.y;
     }
-  
+
     function getPointOnLine(p1, p2, t) {
       if (p1.x !== p2.x) {
         let a = (p2.y - p1.y) / (p2.x - p1.x);
-  
+
         let x = (p2.x - p1.x) * t + p1.x;
-  
+
         let y = a * (x - p1.x) + p1.y;
-  
-        return { x, y, r: 10};
+
+        return { x, y, r: 10 };
       }
       else {
         let x = p1.x;
         let y = (p2.y - p1.y) * t + p1.y;
-  
-        return {x,y, r: 10};
-  
+
+        return { x, y, r: 10 };
+
       }
     }
-  
+
     function getRandom(min, max) {
       return random.value() * (max - min) + min
     }
-  
+
     function map(n, start1, stop1, start2, stop2) {
       return ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
     }
-  
+
     function quadMap(n, start1, stop1, start2, stop2) {
       let b = start2,
         c = stop2 - start2,
         t = n - start1,
         d = stop1 - start1;
-  
+
       t /= d;
-  
+
       return -c * t * (t - 2) + b
     }
-  
+
     function getRandomElem(arr) {
       return arr[Math.floor(random.value() * arr.length)];
     }
-  
+
     function getRandomInt(min, max) {
       return Math.floor(getRandom(min, max));
     }
-  
+
     function clamp(val, min, max) {
       return Math.min(Math.max(val, min), max);
     };
-  
+
     function dist(x1, y1, x2, y2) {
       return Math.hypot(x1 - x2, y1 - y2);
     }
