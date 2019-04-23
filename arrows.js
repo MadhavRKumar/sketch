@@ -6,21 +6,36 @@ const settings = {
 
 const sketch = () => {
   return ({ context, width, height }) => {
-    context.fillStyle = 'white';
+    context.fillStyle = '#FFFFFB';
     context.fillRect(0, 0, width, height);
-
+    let wMargin = width / 8;
+    let hMargin = wMargin;
 
     context.strokeStyle = "#222222"
-    let points = poisson(true, [], 750, 10);
+    context.lineWidth = 2.5;
+    let xInc = 6;//width/450;
+    let buffer = 50;
+    for(let x = 0; x <= width; x+= xInc){
+      context.beginPath();
+      drawLine({x: x, y: -buffer}, {x:x, y: height+buffer}, {})
+      context.stroke();
+    }
+
+    
+    context.lineWidth = 7;
+    drawRect(width/2, height/2, width-wMargin*2, height-hMargin*2);
+
+    wMargin *= 1.3;
+    hMargin = wMargin;
+    let points = poisson(true, [], 450, 10);
     let nums = Array.from(points, (x, i) => i);
     for(let i = nums.length-1; i >= 0; i--) {
-      let j = getRandomInt(0, i+1);
+      let j = getRandomInt(0, i);
 
       let temp = nums[i];
       nums[i] = nums[j];
       nums[j] = temp;
     }
-    context.lineWidth = 2;
 
     for (let i = 0; i < nums.length; i++) {
       let cur = points[i];
@@ -31,17 +46,17 @@ const sketch = () => {
       let otherToCur = { x: -curToOther.x, y: -curToOther.y };
 
       let d = dist(cur.x, cur.y, other.x, other.y);
-      let mag = d * 0.001;
+      let mag = d*0;
  
       cur.x += (curToOther.x * mag);
       cur.y += (curToOther.y * mag);
 
       other.x += (otherToCur.x * mag);
       other.y += (otherToCur.y * mag);
-
       drawArrow(cur, other);
 
     }
+
 
 
 
@@ -61,7 +76,10 @@ const sketch = () => {
       control.x += norm.x;
       control.y += norm.y;
 
+      context.lineWidth = 3;
       let points = drawQuadraticLine([start, control, end]);
+
+
       let endPoint = points.pop();
       tan = getQuadraticTangent([start, control, end], 1);
       norm = { x: -tan.y, y: tan.x };
@@ -83,6 +101,9 @@ const sketch = () => {
       norm2.y *= mag;
       let p2 = { x: endPoint.x - norm2.x, y: endPoint.y - norm2.y };
 
+
+      context.lineWidth = 5;
+
       context.beginPath();
       drawLine(p1, endPoint, { moveTo: true });
       context.stroke();
@@ -92,6 +113,25 @@ const sketch = () => {
       context.stroke();
 
     }
+
+    
+    function drawRect(x, y, w, h, noFill) {
+      let corner = { x: x, y: y };
+
+      corner.x -= w / 2;
+      corner.y -= h / 2;
+      let path = new Path2D();
+      drawLine({ x: corner.x, y: corner.y + h }, corner, {p:path, moveTo:true});
+      drawLine(corner, { x: corner.x + w, y: corner.y },  {p:path, moveTo:false});
+      drawLine({ x: corner.x + w, y: corner.y }, { x: corner.x + w, y: corner.y + h },  {p:path, moveTo:false})
+      drawLine({ x: corner.x + w, y: corner.y + h }, { x: corner.x, y: corner.y + h },  {p:path, moveTo:false})
+      if (!noFill)
+        context.fill(path);
+      context.stroke(path);
+      path.closePath();
+
+    }
+    
     function drawLine(start, end, options) {
       let { p, moveTo, control } = options;
       let ctx = p || context;
@@ -105,8 +145,11 @@ const sketch = () => {
         dt = 0.5;
       } else if (dist < 400) {
         dt = 0.3;
-      } else {
+      } else if (dist < 600){
         dt = 0.2;
+      }
+      else {
+        dt = getRandom(0.09, 0.11);
       }
 
 
@@ -177,7 +220,7 @@ const sketch = () => {
         }
       }
 
-      let p0 = { x: getRandom(0, width), y: getRandom(0, height) };
+      let p0 = { x: getRandom(wMargin, width - wMargin), y: getRandom(wMargin, width - wMargin) };
       active.push(p0);
       points.push(p0);
       for (let p of points) {
@@ -216,43 +259,43 @@ const sketch = () => {
       context.lineCap = "round";
       let filterPoints = points.filter(p => !prePoints.includes(p));
       let val = random.gaussian(1, 0.05);
-      for (let p of filterPoints) {
-        if (strokeSize) {
-          let d = dist(p.x, p.y, width / 2, height / 2);
-          let lw = map(d, 0, Math.sqrt(2) * width / 2, strokeSize, 0);
-          context.lineWidth = strokeSize; //random.gaussian(strokeSize, 0.05);
-        }
-        else {
-          context.lineWidth = random.gaussian(1, 0.06);
-        }
+      // for (let p of filterPoints) {
+      //   if (strokeSize) {
+      //     let d = dist(p.x, p.y, width / 2, height / 2);
+      //     let lw = map(d, 0, Math.sqrt(2) * width / 2, strokeSize, 0);
+      //     context.lineWidth = strokeSize; //random.gaussian(strokeSize, 0.05);
+      //   }
+      //   else {
+      //     context.lineWidth = random.gaussian(1, 0.06);
+      //   }
 
 
-        if (point || random.value() < chance) {
-          context.beginPath();
-          context.arc(p.x, p.y, 1, 0, 2 * Math.PI);
-          context.stroke();
-          context.closePath();
-        }
-        else {
-          let mag = cellSize / random.gaussian(3, 0.5);
+      //   if (point || random.value() < chance) {
+      //     context.beginPath();
+      //     context.arc(p.x, p.y, 1, 0, 2 * Math.PI);
+      //     context.stroke();
+      //     context.closePath();
+      //   }
+      //   else {
+      //     let mag = cellSize / random.gaussian(3, 0.5);
 
-          for (let a = Math.PI / 4; a <= Math.PI; a += Math.PI / 4) {
-            let start = { x: p.x + Math.cos(a) * mag, y: p.y + Math.sin(a) * mag };
-            let end = { x: p.x + Math.cos(a + Math.PI) * mag, y: p.y + Math.sin(a + Math.PI) * mag };
-            drawLine(start, end, null, true);
-            context.stroke();
-          }
+      //     for (let a = Math.PI / 4; a <= Math.PI; a += Math.PI / 4) {
+      //       let start = { x: p.x + Math.cos(a) * mag, y: p.y + Math.sin(a) * mag };
+      //       let end = { x: p.x + Math.cos(a + Math.PI) * mag, y: p.y + Math.sin(a + Math.PI) * mag };
+      //       drawLine(start, end, null, true);
+      //       context.stroke();
+      //     }
 
-        }
+      //   }
 
-      }
+      // }
 
       return filterPoints;
     }
 
     function isValid(p, grid, cellsize, rows, cols, radius) {
 
-      if (p.x < 0 || p.x >= width || p.y < 0 || p.y >= height) {
+      if (p.x < wMargin || p.x >= width - wMargin || p.y < hMargin || p.y >= height-hMargin) {
         return false;
       }
       let xIndex = Math.floor(p.x / cellsize);
@@ -286,7 +329,7 @@ const sketch = () => {
     }
 
     function drawQuadraticLine(points, draw, inc) {
-      let tInc = inc || 1.0 / 25;
+      let tInc = inc || 1.0 / 10;
 
       let ps = [];
       //context.beginPath();
@@ -298,9 +341,9 @@ const sketch = () => {
       //   context.closePath();
       // }
       context.beginPath();
-      let prev = getQuadraticPoint(points, 0);
+      let prev = getQuadraticPoint(points, tInc/5);
       ps.push(prev);
-      for (let t = tInc; t <= 1; t += tInc) {
+      for (let t = tInc; t <= 1-tInc/10; t += tInc) {
         let cur = getQuadraticPoint(points, t);
         ps.push(cur);
         drawLine(prev, cur, {});
