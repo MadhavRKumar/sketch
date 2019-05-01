@@ -25,9 +25,11 @@ const sketch = () => {
     context.lineWidth = 7;
     drawRect(width/2, height/2, width-wMargin*2, height-hMargin*2);
 
-    wMargin *= 1.3;
+    wMargin *= 1.5;
     hMargin = wMargin;
-    let points = poisson(true, [], 450, 10);
+    let points = poisson(true, [], 350, 10);
+ 
+
     let nums = Array.from(points, (x, i) => i);
     for(let i = nums.length-1; i >= 0; i--) {
       let j = getRandomInt(0, i);
@@ -37,9 +39,15 @@ const sketch = () => {
       nums[j] = temp;
     }
 
+    points.sort((a, b) => {
+      let aDist = dist(a.x, a.y, width/2, height/2);
+      let bDist = dist(b.x, b.y, width/2, height/2);
+      return aDist - bDist;
+    })
+
     for (let i = 0; i < nums.length; i++) {
       let cur = points[i];
-      let other = points[nums[i]];
+      let other = points[(i+1)%points.length];
 
       let curToOther = { x: other.x - cur.x, y: other.y - cur.y };
       curToOther = normalize(curToOther);
