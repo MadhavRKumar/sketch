@@ -7,17 +7,51 @@ const settings = {
 
 const sketch = () => {
   return ({ context, width, height }) => {
-    context.fillStyle = '#f6d8ae';
-    context.fillRect(0, 0, width, height);
 
-    context.strokeStyle = '#f4e4d0';
-    fillCirc(width/2);
-    let colors = [
-      "#da4167",
-      "#f4d35e",
-      "#083d77"
+    let palettes = [
+
+      // {
+      //   bg1: '#f6d8ae',
+      //   bg2: '#f4e4d0',
+      //   colors: [
+      //             "#da4167",
+      //             "#f4d35e",
+      //             "#083d77"
+      //           ]
+      // },
+
+      // {
+      //   bg1: '#f7ede2',
+      //   bg2: '#f2e7dc',
+      //   colors: [
+      //             "#f9a143",
+      //             "#f2cb41",
+      //             "#c91a1a"
+      //           ]
+      // },
+
+      {
+        bg1: '#fffbfe',
+        bg2: '#fcf7fb',
+        colors: [
+                  "#d6e5c9",
+                  "#ffe8e1",
+                  "#efaac4"
+                ]
+     }
+
 
     ]
+
+    let palette = getRandomElem(palettes);
+    let colors = palette.colors;
+
+
+    context.fillStyle = palette.bg1;
+    context.fillRect(0, 0, width, height);
+
+    context.strokeStyle = palette.bg2;
+    fillCirc(width/2);
 
     let circs = [];
     let circ = [];
@@ -39,7 +73,7 @@ const sketch = () => {
         let end = circ[i];
         let offset = {x: end.x - width/2, y : end.y - height/2};
         offset = normalize(offset);
-        let noiseVal = (random.noise3D(Math.cos(a)+1, Math.sin(a)+1, 1) + 1 )/ 2
+        let noiseVal = (random.noise3D(Math.cos(a)+1, Math.sin(a)+1, 1) + 1 )/ 2;
         let rand = getRandom(0.5, 1);
         let offX = offset.x * offsetMag * noiseVal* rand;
         let offY = offset.y * offsetMag * noiseVal * rand;
@@ -52,7 +86,7 @@ const sketch = () => {
       
       circs.push({circle:c, size: offsetMag});
 
-      offsetMag *= 1.08;
+      offsetMag *= (getRandom(1.01, 1.15));
     }
     let prevColor;
     for(let i = circs.length-1; i >= 0; i--) {
@@ -61,13 +95,20 @@ const sketch = () => {
  
      
       let path = new Path2D();
-      context.strokeStyle = "#333333";
-      context.lineWidth = 3;
-      for(let j = 0; j < c.length; j++) {
-        let start = c[j];
-        let end = c[(j+1)%c.length];
-        drawLine(start, end, {p: path, moveTo: false});
+      context.strokeStyle = "#111111";
+      context.lineWidth = 5;
+      path.moveTo(c[0].x, c[0].y);
+      for(let j = 1; j < c.length-1; j++) {
+        // let start = c[j];
+        // let end = c[(j+1)%c.length];
+        // drawLine(start, end, {p: path, moveTo: false});
+
+        let xc = (c[j].x + c[j+1].x)/2;
+        let yc = (c[j].y + c[j+1].y)/2;
+        path.quadraticCurveTo(c[j].x, c[j].y, xc, yc);
+
       }
+      path.quadraticCurveTo(c[c.length-1].x, c[c.length-1].y, c[0].x, c[0].y);
       path.closePath();
       let newColor = getRandomElem(colors);
       if(!prevColor || prevColor !== newColor) {
@@ -81,6 +122,7 @@ const sketch = () => {
       fillCirc(size);
       prevColor = newColor;
       context.restore();
+
     }
 
 
@@ -314,8 +356,9 @@ const sketch = () => {
       grid[y][x] = p0;
     }
 
-    function drawQuadraticLine(points, draw, inc) {
+    function drawQuadraticLine(points, inc, ctx) {
       let tInc = inc || 1.0 / 10;
+      let c = ctx || context;
 
       let ps = [];
       //context.beginPath();
@@ -326,20 +369,20 @@ const sketch = () => {
       //   context.stroke();
       //   context.closePath();
       // }
-      context.beginPath();
+      c.beginPath();
       let prev = getQuadraticPoint(points, tInc / 5);
       ps.push(prev);
       for (let t = tInc; t <= 1 - tInc / 10; t += tInc) {
         let cur = getQuadraticPoint(points, t);
         ps.push(cur);
-        drawLine(prev, cur, {});
-        context.stroke();
+        drawLine(prev, cur, {p: c});
+        c.stroke();
         // ps.push(point);
         prev = cur;
       }
 
 
-      context.closePath();
+      c.closePath();
 
       return ps;
     }
