@@ -10,25 +10,25 @@ const sketch = () => {
 
     let palettes = [
 
-      // {
-      //   bg1: '#f6d8ae',
-      //   bg2: '#f4e4d0',
-      //   colors: [
-      //             "#da4167",
-      //             "#f4d35e",
-      //             "#083d77"
-      //           ]
-      // },
+      {
+        bg1: '#f6d8ae',
+        bg2: '#f4e4d0',
+        colors: [
+                  "#da4167",
+                  "#f4d35e",
+                  "#083d77"
+                ]
+      },
 
-      // {
-      //   bg1: '#f7ede2',
-      //   bg2: '#f2e7dc',
-      //   colors: [
-      //             "#f9a143",
-      //             "#f2cb41",
-      //             "#c91a1a"
-      //           ]
-      // },
+      {
+        bg1: '#f7ede2',
+        bg2: '#f2e7dc',
+        colors: [
+                  "#f9a143",
+                  "#f2cb41",
+                  "#c91a1a"
+                ]
+      },
 
       {
         bg1: '#fffbfe',
@@ -130,13 +130,15 @@ const sketch = () => {
     function fillCirc(size) {
       let lines = 2000; //quadMap(size, width/100, width/5, 175, 3500);
       context.lineWidth =  quadMap(size, width/100, width/5, 0.5, 3);
+      let [x,y] = random.onCircle(width*1.1);
       context.beginPath();
       for(let i = 0; i < lines; i++) {
-        let [x,y] = random.onCircle(width*1.1);
         let centerX = getRandom(0, width);
         let centerY = getRandom(0, height);
-        context.moveTo(centerX + x, centerY + y);
-        context.lineTo(centerX - x, centerY- y);
+
+
+        context.moveTo(centerX + x + getRandom(-100, 100), centerY + y+ getRandom(-100, 100));
+        context.lineTo(centerX - x + getRandom(-100, 100), centerY- y+ getRandom(-100, 100));
         // drawLine(p1, p2, {moveTo: true});
         context.stroke();
       }
