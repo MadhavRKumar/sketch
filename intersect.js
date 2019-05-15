@@ -45,8 +45,9 @@ const sketch = () => {
       for (let i = 0; i < 5500; i++) {
         let lineSize = random.gaussian(200, 1)
 
-        let dirX = Math.cos(2*a)*Math.sin(a/10)*Math.sin(a);
-        let dirY = Math.sin(a*0.001)/(Math.cos(3*a)+0.0001);
+        // Change these functions for fun effects
+        let dirX = Math.sin(a); //Math.cos(2*a)*Math.sin(a/10)*Math.sin(a);  
+        let dirY = Math.cos(a); //Math.sin(a*0.001)/(Math.cos(3*a)+0.0001);
 
         let end = { x: start.x + (dirX * lineSize), y: start.y + (dirY * lineSize) };
         let flip = false;
