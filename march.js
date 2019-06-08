@@ -1,5 +1,6 @@
 const canvasSketch = require('canvas-sketch');
 const random = require('canvas-sketch-util/random');
+const Color = require('canvas-sketch-util/color');
 
 const settings = {
   dimensions: [2048, 2048]
@@ -8,107 +9,119 @@ const settings = {
 const sketch = () => {
   return ({ context, width, height }) => {
 
+
     let palettes = [
       {
-        fill: "#ffbfc8",
-        stroke: "#464655"
+        bg: "#FEABD5",
+        colors: [
+          "#f92222",
+          "#FFFFFF",
+          "#015AFF",
+          "#FF0080"
+        ]  
       },
+
       {
-        fill: "#ffc156",
-        stroke: "#050505"
-      },
-      {
-        fill: "#c1414c",
-        stroke: "#1e1e1d"
+        bg: "#F5EBE2",
+        colors: [
+          "#0C8469",
+          "#F1492E",
+          "#FFD010",
+          "#F7A79C"
+        ]  
       }
+
     ]
 
-    let color = getRandomElem(palettes);
+    let palette = getRandomElem(palettes);
 
-    context.fillStyle = color.fill;
-    context.strokeStyle = color.stroke;
+
+
+    context.fillStyle = palette.bg;
     context.fillRect(0, 0, width, height);
 
-    let wMargin = width / 10;
-    let hMargin = width / 20;
-    let xBound = { min: wMargin, max: width - wMargin };
-    let yBound = { min: hMargin, max: height };
-    for (let k = 0; k < 5; k++) {
-      let start = { x: getRandom(xBound.min, xBound.max), y: getRandom(yBound.min, yBound.max) };
-      let a = getRandom(0, 2 * Math.PI);
-      let lines = [];
+
+    let wMargin = 0; //width/20;
+    let hMargin = wMargin;
+
+    let w = width-2*wMargin;
+    let h = height-2*hMargin;
+    
+    let n = 1000;
 
 
-      let xOff = 0;
-      let yOff = 100;
+    let grid = [];
 
-      for (let i = 0; i < 5500; i++) {
-        let lineSize = random.gaussian(200, 1)
+    for (let i = 0; i < palette.colors.length*2; i++) {
+      let cutOff = getRandom(0.5, 0.75);
+      let mult = getRandom(0.001, 0.0025);
+      let offX = getRandom(-1000, 1000);
+      let offY = getRandom(-1000, 1000);
+      let c = palette.colors[i%palette.colors.length];
+      let [hue,s,l] = Color.parse(c).hsl;
 
-        // Change these functions for fun effects
-        let dirX = Math.sin(a); //Math.cos(2*a)*Math.sin(a/10)*Math.sin(a);  
-        let dirY = Math.cos(a); //Math.sin(a*0.001)/(Math.cos(3*a)+0.0001);
+      let shadowyOff = getRandom(-15, 15);
+      let shadowxOff = getRandom(-15, 15);
+      let dark = getRandom(-0.5, -0.125);
 
-        let end = { x: start.x + (dirX * lineSize), y: start.y + (dirY * lineSize) };
-        let flip = false;
+      for (let y = hMargin; y <= height - hMargin; y += h / n) {
+        let row = [];
 
-        if (end.x > xBound.max) {
-          end.x = xBound.max - (end.x - xBound.max);
-          flip = true;
-        }
-
-        if (end.x < xBound.min) {
-          end.x = xBound.min + (xBound.min - end.x);
-          flip = true;
-        }
-
-        if (end.y > yBound.max) {
-          end.y = yBound.max - (end.y - yBound.max);
-          flip = true;
-        }
-
-        if (end.y < yBound.min) {
-          end.y = yBound.min + (yBound.min - end.y);
-          flip = true;
-        }
-
-
-        let l = { start, end };
-
-        let control = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
-
-        let circSize= getRandom(3, 9);
-        for (let j = 0; j < lines.length - 1; j++) {
-          let other = lines[j];
-          let p = intersects(l, other);
-          if (p) {
+        for (let x = wMargin; x <= width - wMargin; x += w / n) {
+          let noise = (random.noise2D(x + offX, y + offY, mult) + 1) / 2;
+          let val = map(noise, -1, 1, 100, 0) + 1
+          if (noise > cutOff) {
+            context.fillStyle = Color.offsetHSL(c, 0, 0, l*dark).hex; //Color.parse({ hsl: [hue, s, val] }).hex;
             context.beginPath();
-            context.arc(p.x, p.y, circSize, 0, Math.PI * 2);
+            context.arc(x + shadowxOff, y + shadowyOff, 8, 0, Math.PI * 2);
             context.fill();
             context.closePath();
           }
-        }
-        
-        context.lineWidth = getRandom(1, 2.5);
-        context.beginPath();
-        // context.moveTo(start.x, start.y);
-        // context.lineTo(end.x, end.y);
-        drawLine(start, end, {});
-        context.stroke();
-        context.closePath();
 
-        lines.push(l);
-        start = end;
-        a += (random.noise2D(xOff, yOff, 1, Math.PI/10));
-        if (flip) {
-          a += Math.PI;
+          let p = { x, y, noise };
+          //            row.push(p);
         }
-
-        xOff += 0.001;
-        yOff += 0.001;
+        // grid.push(row);
       }
+      
+      
 
+      for (let y = hMargin; y <= height - hMargin; y += h / n) {
+        let row = [];
+        for (let x = wMargin; x <= width - wMargin; x += w / n) {
+          let noise = (random.noise2D(x + offX, y + offY, mult) + 1) / 2;
+          let val = map(noise, -1, 1, 100, 0) + 1
+          if (noise > cutOff) {
+            let hOff = random.chance(0.97) ? 0 : random.gaussian(0, 0.5)*20;
+            let sOff = random.chance(0.97) ? 0 : random.gaussian(0, 0.5)*20;
+            let lOff = random.chance(0.97) ? 0 : random.gaussian(0, 0.5)*20;
+
+            context.fillStyle = Color.offsetHSL(c, hOff, sOff, lOff).hex;
+            context.beginPath();
+            context.arc(x, y, 6, 0, Math.PI * 2);
+            context.fill();
+            context.closePath();
+          }
+
+          let p = { x, y, noise };
+          //            row.push(p);
+        }
+        // grid.push(row);
+      }
     }
+
+
+
+    
+
+
+    
+    
+
+
+
+
+
 
     function intersects(line1, line2) {
 
@@ -171,7 +184,10 @@ const sketch = () => {
       let distance = dist(start.x, start.y, end.x, end.y);
       let dt;
 
-      if (distance < 100) {
+      if(distance < 50) {
+        dt = 2;
+      }
+      else if (distance < 100) {
         dt = 1;
       }
       else if (distance < 200) {
@@ -190,7 +206,7 @@ const sketch = () => {
         ctx.moveTo(start.x, start.y);
       }
       let prev = start;
-      for (let t = dt; t <= 2.0; t += dt) {
+      for (let t = 0; t <= 2.0; t += dt) {
         let cur = getSquigglePoint(start, end, t, control);
         let tan = { x: start.x - end.x, y: start.y - end.y };
         let normal = { x: -tan.y, y: tan.x };
@@ -292,36 +308,87 @@ const sketch = () => {
       context.lineCap = "round";
       let filterPoints = points.filter(p => !prePoints.includes(p));
       let val = random.gaussian(1, 0.05);
-      // for (let p of filterPoints) {
-      //   if (strokeSize) {
-      //     let d = dist(p.x, p.y, width / 2, height / 2);
-      //     let lw = map(d, 0, Math.sqrt(2) * width / 2, strokeSize, 0);
-      //     context.lineWidth = strokeSize; //random.gaussian(strokeSize, 0.05);
-      //   }
-      //   else {
-      //     context.lineWidth = random.gaussian(1, 0.06);
-      //   }
+    //   for (let p of filterPoints) {
+    //     if (strokeSize) {
+    //       let d = dist(p.x, p.y, width / 2, height / 2);
+    //       let lw = map(d, 0, Math.sqrt(2) * width / 2, strokeSize, 0);
+    //       context.lineWidth = strokeSize; //random.gaussian(strokeSize, 0.05);
+    //     }
+    //     else {
+    //       context.lineWidth = random.gaussian(2, 0.06);
+    //     }
 
 
-      //   if (point || random.value() < chance) {
-      //     context.beginPath();
-      //     context.arc(p.x, p.y, 1, 0, 2 * Math.PI);
-      //     context.stroke();
-      //     context.closePath();
-      //   }
-      //   else {
-      //     let mag = cellSize / random.gaussian(3, 0.5);
+    //     if (point || random.value() < chance) {
+    //       context.beginPath();
+    //       context.arc(p.x, p.y, 1, 0, 2 * Math.PI);
+    //       context.stroke();
+    //       context.closePath();
+    //     }
+    //     else {
 
-      //     for (let a = Math.PI / 4; a <= Math.PI; a += Math.PI / 4) {
-      //       let start = { x: p.x + Math.cos(a) * mag, y: p.y + Math.sin(a) * mag };
-      //       let end = { x: p.x + Math.cos(a + Math.PI) * mag, y: p.y + Math.sin(a + Math.PI) * mag };
-      //       drawLine(start, end, null, true);
-      //       context.stroke();
-      //     }
+    //       context.save();
+    //       context.translate(p.x, p.y);
+    //       context.rotate(getRandom(0, Math.PI*2))
+    //       let center = {x: 0, y: 0};
 
-      //   }
+    //       let lineSize = cellSize / random.gaussian(Math.sqrt(2), 0.1) * getRandom(0.75, 1);
+    //       let dnaWidth = lineSize / getRandom(2, 5);
 
-      // }
+    //       let points = new Array(4);
+
+    //       points[0] = { x: center.x - dnaWidth, y: center.y - lineSize }
+    //       points[3] = { x: center.x + dnaWidth, y: center.y + lineSize }
+
+    //       points[1] = { x: center.x - dnaWidth, y: points[0].y + 3 * lineSize / 4 }
+    //       points[2] = { x: center.x + dnaWidth, y: points[3].y - 3 * lineSize / 4 }
+
+    //       let points2 = new Array(4);
+
+    //       points2[0] = { x: center.x + dnaWidth, y: center.y - lineSize }
+    //       points2[3] = { x: center.x - dnaWidth, y: center.y + lineSize }
+
+    //       points2[1] = { x: center.x + dnaWidth, y: points[0].y + 3 * lineSize / 4 }
+    //       points2[2] = { x: center.x - dnaWidth, y: points[3].y - 3 * lineSize / 4 }
+
+    //       if(random.chance(0.5)) {
+    //         let temp = points;
+    //         points = points2;
+    //         points2 = temp;
+    //       }
+
+    //       drawCubicLine(points, true);
+    //       let c = getCubicPoint(points, 0.5);
+    //       context.beginPath();
+    //       context.arc(c.x, c.y, 10, 0, Math.PI * 2);
+    //       context.fill();
+    //       context.closePath();
+    //       drawCubicLine(points2, true);
+
+    //       for (t = 0.1; t <= 0.4; t += 0.1) {
+    //         let start = getCubicPoint(points, t);
+    //         let end = getCubicPoint(points2, t);
+    //         context.beginPath();
+    //         drawLine(start, end, {});
+    //         context.stroke();
+    //         context.closePath();
+    //       }
+
+          
+    //       for (t = 0.5; t <= 0.9; t += 0.1) {
+    //         let start = getCubicPoint(points, t);
+    //         let end = getCubicPoint(points2, t);
+    //         context.beginPath();
+    //         drawLine(start, end, {});
+    //         context.stroke();
+    //         context.closePath();
+    //       }
+
+    //       context.restore();
+
+    //     }
+
+    //   }
 
       return filterPoints;
     }
@@ -418,32 +485,35 @@ const sketch = () => {
     }
 
     function drawCubicLine(points, draw, inc) {
-      let tInc = inc || 0.001;
+      let tInc = inc || 0.15;
       let ps = [];
-      context.beginPath();
 
-      context.moveTo(points[0].x, points[0].y);
-      for (let t = 0; t < 1 + tInc; t += tInc) {
-        let point = geCubicPoint(points, t);
+      let prev = getCubicPoint(points, 0);
+      context.beginPath();
+      for (let t = tInc; t <= 1 + tInc; t += tInc) {
+        let point = getCubicPoint(points, t);
         ps.push(point);
 
+
         if (draw) {
-          context.lineTo(point.x, point.y);
+          drawLine(prev, point, {});
           context.stroke();
         }
 
+
+        prev = point;
+
       }
-
-      context.stroke();
-
       context.closePath();
+
+
 
       return ps;
     }
 
 
 
-    function geCubicPoint(points, t) {
+    function getCubicPoint(points, t) {
       let omt = 1 - t;
       let omt2 = omt * omt;
       let t2 = t * t;
