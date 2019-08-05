@@ -1,106 +1,91 @@
 const canvasSketch = require('canvas-sketch');
 const random = require('canvas-sketch-util/random');
+const WebFont = require('webfontloader');
 
 const settings = {
-  animate: true,
-  dimensions: [2048, 2048],
-  fps: 30,
-  duration: 5,
+  dimensions: [4096, 4096]
 };
 
 const sketch = () => {
-  return ({ context, width, height, playhead }) => {
-    context.fillStyle = 'black';
+  return ({ context, width, height }) => {
+    context.fillStyle = '#FFFDF4';
     context.fillRect(0, 0, width, height);
     let wMargin = 0;
     let hMargin = 0;
 
-    context.strokeStyle = 'white';
-    context.translate(width/2, height/2);
-    let time = (Math.PI*playhead); //Math.sin(time);
-    for(let a = time; a <= Math.PI * 2 + time; a += Math.PI/200) {
-      let point = getInfPoint(a, width/3);
+    const STRING = "I'M COMING HOME SOON";
+    const fontName = 'Handlee';
 
-      // context.beginPath();
-      // context.arc(point.x, point.y, 5, 0, Math.PI*2);
-      // context.fill();
+    const stringArr = STRING.split(' ');
+    let stringGen = createArrayIterator(stringArr);
 
-      // context.closePath();
-
-      let normal = getInfNormal(a, width/3);
-      let mag = 10;
-      let p1 = {x: point.x - normal.x*mag, y: point.y - normal.y*mag}
-      let p2 = {x: point.x + normal.x*mag, y: point.y + normal.y*mag}
-
-      
-      context.beginPath();
-      context.lineWidth = clamp(random.noise4D(Math.cos(a)+1, Math.sin(a)+1, Math.cos(2*(time)), Math.sin(2*(time)), 0.5, 100), 1, 50);
-      context.moveTo(p1.x, p1.y);
-      context.lineTo(p2.x, p2.y);
-      context.stroke();
-
-      context.closePath();
-
-    }
-
-    for(let a = time; a <= Math.PI * 2 + time; a += Math.PI/200) {
-      let point = getInfPoint(a, width/3);
-
-      // context.beginPath();
-      // context.arc(point.x, point.y, 5, 0, Math.PI*2);
-      // context.fill();
-
-      // context.closePath();
-
-      let normal = getInfNormal(a, width/3);
-      let mag = 10;
-      let p1 = {x: point.y - normal.y*mag, y: point.x - normal.x*mag}
-      let p2 = {x: point.y + normal.y*mag, y: point.x + normal.x*mag}
-
-      
-      context.beginPath();
-      context.lineWidth = clamp(random.noise4D(Math.cos(a)+1, Math.sin(a)+1, Math.cos(2*(time)), Math.sin(2*(time)), 0.5, 100), 1, 50);
-      context.moveTo(p1.x, p1.y);
-      context.lineTo(p2.x, p2.y);
-      context.stroke();
-
-      context.closePath();
-
-    }
-    
-    
+ 
+    context.closePath();
+    WebFont.load({
+      google: {
+        families: [fontName]
+      },
+      active: renderText
+    })
     
 
 
+    function renderText() {
+      for(let i = 0; i < 5; i++) {
+      let drawL = (i==0);
+      let fontSize = drawL ? 20 : getRandom(12, 120);
 
+      context.font = `${fontSize}px "${fontName}"`;
+      context.textAlign = 'left';
+      context.textBaseline = 'middle';
+      let fullStringWidth = context.measureText(STRING).width;
+      let padding = context.measureText(" ").width;
+      let curStr = stringGen.next().value;
+      let metrics = context.measureText(curStr);
+      let fontHeight =  (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent)*1.5;
+      let startX = 0;
+      let cutOff = 0.3;
+      let bold = 0.75;
+      let mag = getRandom(0.001, 0.008);
+      for(let y = -height/2; y <= height*2; y += fontHeight) {
+        
+        let x = startX;
+        while(x <= width*1.5) {
+          let noise = random.noise2D(x, y, mag, 1);
 
-    function getInfPoint(t, a) {
-      let sqrt2 = Math.sqrt(2);
-      let x = a * sqrt2 * Math.cos(t) / (Math.sin(t)*Math.sin(t) + 1);
+          if( noise > cutOff || drawL) {
+            if(noise > bold) {
+              context.font = `bold ${fontSize}px "${fontName}"`;
+            }
+            else {
+              context.font = `${fontSize}px "${fontName}"`;
+            }
+            context.fillStyle = "#333333"
+            context.fillText(curStr, x, y);
+            
+          }
+          x += (metrics.width + padding)*random.gaussian(1, 0.5);
+          curStr = stringGen.next().value;
+          metrics = context.measureText(curStr);
+        }
 
-      let y = (a * sqrt2 * Math.cos(t) * Math.sin(t) ) / (Math.sin(t)*Math.sin(t) + 1);
-
-      return {x,y};
-    }
-
-    function getInfNormal(t, a) {
-      let sqrt2 = Math.sqrt(2);
-      let sin2 = Math.sin(t)*Math.sin(t);
-      let cos2 = Math.cos(t)*Math.cos(t);
-      let dxdt = -(sqrt2*a*Math.sin(t)*(sin2 + 2 *cos2 + 1))/((sin2 +1) * (sin2+1));
-
-
-      let dydt =  -(sqrt2*a*(sin2*sin2 + sin2 + (sin2 -1)*cos2))/((sin2 +1) * (sin2+1));
-    
-      let dydx = dydt/dxdt;
-      if(!isFinite(dydx)){
-        dydx = 0;
+        startX -= fullStringWidth/10;
       }
-      let norm = {x:1, y: dydx};
+      context.translate(width/2, height/2)
+      context.rotate(-Math.PI/8);
+      context.translate(-width/2, -height/2)
+    }
 
-      norm = normalize(norm);
 
-      return norm;
+  }
+
+
+    function* createArrayIterator(arr) {
+      let i = 0;
+      while(true) {
+        yield arr[i];
+        i = (i+1)%arr.length;
+      }
     }
 
     function intersects(line1, line2) {
