@@ -3,13 +3,13 @@ const random = require('canvas-sketch-util/random');
 const Color = require('canvas-sketch-util/color');
 
 const settings = {
-  dimensions: [2048, 2048]
+  dimensions: [3000, 3000]
 };
 
 const sketch = () => {
   return ({ context, width, height }) => {
 
-    let wMargin = -width/175;
+    let wMargin = -width/190;
     let hMargin = wMargin;
 
     let palettes = [
@@ -20,24 +20,35 @@ const sketch = () => {
       //   ]
       // }, 
 
-      {
-        bg: "#151515",
-        strokes: [
-          {value: "#B4182F", weight: 50},
-          {value: "#ffffff", weight: 125},
-          {value: "#FFE878", weight: 100},
-          {value: "#156ba0", weight: 40}
-        ]
-      },
+      // {
+      //   bg: "#151515",
+      //   strokes: [
+      //     {value: "#B4182F", weight: 50},
+      //     {value: "#ffffff", weight: 125},
+      //     {value: "#FFE878", weight: 100},
+      //     {value: "#156ba0", weight: 40}
+      //   ]
+      // },
+
+      // {
+      //   bg: "#E9DFE6",
+      //   strokes: [
+      //     {value: "#4DA3E0", weight: 100},
+      //     {value: "#ffffff", weight: 20},
+      //     {value: "#030305", weight: 30},
+      //     {value: "#F2B096", weight: 100},
+      //     {value: "#F2C03C", weight: 10}
+      //   ]
+      // },
 
       {
-        bg: "#E9DFE6",
+        bg: "#0d1321",
         strokes: [
-          {value: "#4DA3E0", weight: 100},
-          {value: "#ffffff", weight: 20},
-          {value: "#030305", weight: 30},
-          {value: "#F2B096", weight: 100},
-          {value: "#F2C03C", weight: 10}
+          {value: "#51ccc1", weight: 30},
+          {value: "#edda50", weight: 5},
+          {value: "#ffeddf", weight: 50},
+          {value: "#0d1321", weight: 100},
+          {value: "#628484", weight: 20}
         ]
       }
     ]
@@ -86,12 +97,12 @@ const sketch = () => {
             context.beginPath();
             //draw line
             isDraw = false;
-            context.lineWidth = clamp(random.gaussian(2, 1), 0.5, 6);
+            context.lineWidth = clamp(random.gaussian(2, 1), 0.5, 10);
             let yOff1 = 0; //getRandom(-yInc/2, yInc/2);
             
             drawLine({ x, y:y+yOff1}, { x: startX, y:y-yOff1 }, {});
 
-            context.strokeStyle = Color.offsetHSL(random.weightedSet(palette.strokes), 0, 0, getRandom(-100, 50)).hex;
+            context.strokeStyle = Color.offsetHSL(random.weightedSet(palette.strokes), 0, 0, getRandom(-10, 10)).hex;
 
             context.stroke();
             context.closePath();
@@ -131,7 +142,7 @@ const sketch = () => {
             context.lineWidth = clamp(random.gaussian(2, 1), 0.5, 6);
             let xOff1 = 0; //getRandom(-xInc/2, xInc/2);
             drawLine({ x:x+xOff1, y }, { x:x-xOff1, y: startY }, {});
-            context.strokeStyle = Color.offsetHSL(random.weightedSet(palette.strokes), 0, 0, getRandom(-100, 50)).hex;
+            context.strokeStyle = Color.offsetHSL(random.weightedSet(palette.strokes), 0, 0, getRandom(-10, 10)).hex;
             context.stroke();
             context.closePath();
           }
