@@ -9,38 +9,38 @@ const settings = {
 const sketch = () => {
   return ({ context, width, height }) => {
 
-    let risographColors = 
-    [ "#F6679D", "#EA3B2E", "#9B374C",
-      "#348D5E", "#F4E557", "#FE713B",
-      "#00767E", "#354163", "#5B5292"
-    ]
+    let risographColors =
+      ["#F6679D", "#EA3B2E", "#9B374C",
+        "#348D5E", "#F4E557", "#FE713B",
+        "#00767E", "#354163", "#5B5292"
+      ]
 
-    let 
-    [
-      pink, red, burgundy, green, yellow, orange, teal, blue, purple
-    ] = risographColors;
+    let
+      [
+        pink, red, burgundy, green, yellow, orange, teal, blue, purple
+      ] = risographColors;
 
     let palettes = [
       {
         bg: '#fffdf4',
-        strokes: 
-        [
-          {value: pink, weight: 100},
-          {value: purple, weight: 80},
-          {value: blue, weight: 80}
+        strokes:
+          [
+            { value: pink, weight: 100 },
+            { value: purple, weight: 80 },
+            { value: blue, weight: 80 }
 
-        ]
+          ]
       },
 
       {
         bg: '#fffdf4',
-        strokes: 
-        [
-          {value: green, weight: 100},
-          {value: teal, weight: 80},
-          {value: burgundy, weight: 80}
+        strokes:
+          [
+            { value: green, weight: 100 },
+            { value: teal, weight: 80 },
+            { value: burgundy, weight: 80 }
 
-        ]
+          ]
       }
     ]
 
@@ -48,165 +48,265 @@ const sketch = () => {
 
     let bg = palette.bg;
 
-    context.fillStyle = bg;
+    context.fillStyle = "#e0ded7"; Color.offsetHSL(bg, 0, 0, -10).hex;
+
     context.fillRect(0, 0, width, height);
     let wMargin = 0;
     let hMargin = 0;
 
+    let bounds = { pos: { x: width / 2, y: height / 2 }, w: width - 2 * wMargin, h: height - 2 * hMargin }
+
+    ////////////// Background
 
 
 
-    //drawLeaf({x:width/2, y:height/2}, width/4);
-
-    let size = width/8;
-    //let points = [{x:width/2, y:height/2}]; //poisson(false, [], size);
-    for(let i = 0; i < 3; i++) {
-
-    let points = poisson(false, [], size);;
 
 
-    for(let p of points) {
-      context.lineWidth = 0.8;
-      let color = random.weightedSet(palette.strokes) + 'FF';
+    /// Init forcefield
+    for (let i = 0; i < 10; i++) {
+      context.save();
+      context.translate(width/2, height/2);
+      context.rotate(i*Math.PI/2);
+      context.translate(-width/2, -height/2);
 
-
-
-      context.lineWidth = getRandom(2, 4);
-      context.strokeStyle =color;
-
-      let [l, mag] = leaf(p, random.gaussian(size, 2), getRandom(0.0075, 0.009));
     
 
-      context.strokeStyle = bg; //Color.offsetHSL(context.strokeStyle, 0, 0, -8).hex;
-      context.lineWidth = getRandom(6, 10);
-      drawQuadraticLine(l,true, 0.01);
-  
-     
-      context.lineWidth = getRandom(2, 4);
+      let gridSize = width / getRandom(50, 100);
+      let grid = [];
+      let freq = getRandom(0.0001, 0.001);
+      for (let y = 0; y <= height; y += gridSize) {
+        let row = [];
 
-      drawLeaf(l, 0.1, getRandom(0.1, 0.3), mag)
+        for (let x = 0; x <= width; x += gridSize) {
+          let offsetX = getRandom(-100, 100);
+          let offsetY = getRandom(-100, 100);
+          let dir = map(random.noise2D(x + offsetX, y + offsetY, freq), -1, 1, Math.PI/2, -Math.PI/2);
+          let p = { x: Math.cos(dir), y: Math.sin(dir) };
+          p = normalize(p);
+          //console.log(p);
+          row.push(p)
+
+        }
+
+
+
+
+        grid.push(row);
+      }
+
+
+      let lineDist = width / 800;
+      let mag = getRandom(1, 3);
+      for (let y = lineDist; y <= height; y += random.gaussian(lineDist)) {
+        let pos = { x: 0, y };
+        let vel = { x: 0, y: 0 };
+        let arc = [];
+        while (isInBounds(bounds, pos)) {
+          let newPos = { x: pos.x, y: pos.y };
+          arc.push(newPos);
+          let dir = grid[Math.floor(pos.y / gridSize)][Math.floor(pos.x / gridSize)];
+
+          let force = { x: dir.x * mag, y: dir.y * mag }
+          vel.x += force.x;
+          vel.y += force.y;
+
+          vel = limitVector(vel, 15);
+          pos.x += vel.x;
+          pos.y += vel.y;
+
+        }
+      
+        let off = 0; //getRandom(width / 2, -width / 2);
+        if (arc.length > 0) {
+
+    
+          context.lineWidth = random.gaussian(0.1, 3);
+          let [h,s,l,a ] = Color.offsetHSL(bg, getRandom(-6, 6), getRandom(-50, 10), getRandom(-2, 2)).hsla;
+          a = getRandom(0, 1);
+          context.strokeStyle =  Color.parse({hsla: [h,s,l,a]}).hex;
+
+          for (let j = 0; j < arc.length-1; j++) {
+     
+            context.beginPath();
+            let point = arc[j+1];
+            context.moveTo(arc[j].x + off, arc[j].y + off);
+            context.lineTo(point.x + off, point.y + off);
+
+            context.stroke();
+
+            context.closePath();
+          }
+
+
+        }
+      }
+
+      context.restore();
     }
 
-  }
+
+
+    ////////////////// Foreground
+    let size = width / 8;
+    for (let i = 0; i < 2; i++) {
+
+      let points = poisson(false, [], size);;
+
+
+      for (let p of points) {
+        context.lineWidth = 0.8;
+        let color = random.weightedSet(palette.strokes) + 'FF';
+        let freq = getRandom(0.005, 0.006);
 
 
 
+        context.lineWidth = getRandom(0.1, 0.5);
+        context.strokeStyle = color;
 
-    function leaf(p, size, tInc) {
+        let [l, mag] = leaf(p, random.gaussian(size, 50), getRandom(0.001, 0.002), freq);
+
+
+
+        // draw veins on top of leaf
+
+        context.strokeStyle = bg; //Color.offsetHSL(context.strokeStyle, 0, 0, -8).hex;
+        context.lineWidth = getRandom(6, 10);
+        drawQuadraticLine(l, true, 0.01);
+
+
+        context.lineWidth = getRandom(2, 4);
+
+        drawLeaf(l, 0.1, getRandom(0.1, 0.3), mag, freq)
+      }
+
+    }
+
+
+
+    function isInBounds(bounds, pos) {
+      let low = { x: bounds.pos.x - bounds.w / 2, y: bounds.pos.y - bounds.h / 2 };
+      let high = { x: bounds.pos.x + bounds.w / 2, y: bounds.pos.y + bounds.h / 2 };
+
+      return pos.x >= low.x && pos.y >= low.y && pos.x <= high.x && pos.y <= high.y
+
+    }
+
+
+
+    function leaf(p, size, tInc, freq) {
       context.beginPath();
       a = random.noise3D(p.x, p.y, 1, getRandom(0.0001, 0.00025), 1) * 2 * Math.PI;
-     //a += (Math.PI/filterPoints.length * 2);
-     let x = Math.cos(a);
-     let y = Math.sin(a);
+      //a += (Math.PI/filterPoints.length * 2);
+      let x = Math.cos(a);
+      let y = Math.sin(a);
 
-     let center = {x: width/2, y: height/2}; //getClosest(p, centers);
-     let toPoint = {x: p.x-center.x, y: p.y - center.y};
-     let tanMag = dist(center.x, center.y, p.x, p.y);
+      let center = { x: width / 2, y: height / 2 }; //getClosest(p, centers);
+      let toPoint = { x: p.x - center.x, y: p.y - center.y };
+      let tanMag = dist(center.x, center.y, p.x, p.y);
 
-     // let index = random.chance(0.7) ? Math.floor(map(tanMag, 0, circRad, 0, 3)) : getRandomInt(0, 3);
-     // context.strokeStyle = colors[index];
+      // let index = random.chance(0.7) ? Math.floor(map(tanMag, 0, circRad, 0, 3)) : getRandomInt(0, 3);
+      // context.strokeStyle = colors[index];
 
-     // toPoint.x /= tanMag;
-     // toPoint.y /= tanMag;
-     let chance = random.chance(0.5);
-     // let x = chance ? toPoint.x : -toPoint.x;
-     // let y = chance ? toPoint.y : -toPoint.y;
-     // let [x, y] = random.onCircle();
-     let mag = size / random.gaussian(Math.sqrt(2), 0.1)  * getRandom(0.75, 1);
-     let leafPoints = new Array(3);
-
-
-     leafPoints[0] = { x: p.x - x * mag, y: p.y - y * mag }
-     leafPoints[2] = { x: p.x + x * mag, y: p.y + y * mag }
-
-     let t = getRandom(0.5, 0.65);
-     let controlP = getPointOnLine(leafPoints[0], leafPoints[2], t);
-
-     let [offsetX, offsetY] = random.onCircle(mag*getRandom(0.2, 0.5));
-
-     controlP.x += offsetX;
-     controlP.y += offsetY;
+      // toPoint.x /= tanMag;
+      // toPoint.y /= tanMag;
+      let chance = random.chance(0.5);
+      // let x = chance ? toPoint.x : -toPoint.x;
+      // let y = chance ? toPoint.y : -toPoint.y;
+      // let [x, y] = random.onCircle();
+      let mag = size / random.gaussian(Math.sqrt(2), 0.1) * getRandom(0.75, 1);
+      let leafPoints = new Array(3);
 
 
-     leafPoints[1] = controlP; //{ x: getRandom(minBound.x, maxBound.x), y: getRandom(minBound.y, maxBound.y) };
-     context.closePath();
-     let firstPass = true;
+      leafPoints[0] = { x: p.x - x * mag, y: p.y - y * mag }
+      leafPoints[2] = { x: p.x + x * mag, y: p.y + y * mag }
 
-     for(let i = 0; i <= 0; i++) {
-     let tStart = 0; firstPass ? 0 : 0.1;//getRandom(0.05, 0.05);
+      let t = getRandom(0.5, 0.65);
+      let controlP = getPointOnLine(leafPoints[0], leafPoints[2], t);
 
-  
-     drawLeaf(leafPoints, tStart, tInc, mag)
-     firstPass = false;
+      let [offsetX, offsetY] = random.onCircle(mag * getRandom(0.2, 0.5));
 
-     }
-
-     return [leafPoints, mag];
-   }
-    
+      controlP.x += offsetX;
+      controlP.y += offsetY;
 
 
-    function drawLeaf(leafPoints, tStart, tInc, mag) {
-      for(let t = tStart; t < 1; t += tInc) {
+      leafPoints[1] = controlP; //{ x: getRandom(minBound.x, maxBound.x), y: getRandom(minBound.y, maxBound.y) };
+      context.closePath();
+      let firstPass = true;
+
+      for (let i = 0; i <= 0; i++) {
+        let tStart = 0; firstPass ? 0 : 0.1;//getRandom(0.05, 0.05);
+
+        drawLeaf(leafPoints, tStart, tInc, mag, freq)
+        firstPass = false;
+
+      }
+
+      return [leafPoints, mag];
+    }
+
+
+
+    function drawLeaf(leafPoints, tStart, tInc, mag, freq) {
+      for (let t = tStart; t < 1; t += tInc) {
 
         let p = getQuadraticPoint(leafPoints, t);
         let tan = getTangent(leafPoints, t);
         let normTan = normalize(tan);
-        let perp1 = {x: -normTan.y, y: normTan.x};
-        let perp2 = {x: perp1.x, y: perp1.y};
+        let perp1 = { x: -normTan.y, y: normTan.x };
+        let perp2 = { x: perp1.x, y: perp1.y };
         let a = Math.atan2(perp1.y, perp1.x);
-        perp1.x = Math.cos(a + Math.PI/4);
-        perp1.y = Math.sin(a + Math.PI/4);
-        
-        perp2.x = Math.cos(a - Math.PI/4);
-        perp2.y = Math.sin(a - Math.PI/4);
- 
- 
-        let off = (mag/2) * Math.sin(t*Math.PI) + map(random.noise2D(p.x, p.y, 0.003), -1, 1, -0.1, 1)*100;
-        let p1 = {x: p.x - perp1.x*off, y: p.y - perp1.y*off}
- 
-        let p2 = {x: p.x + perp2.x*off , y:  p.y + perp2.y*off}
- 
+        perp1.x = Math.cos(a + Math.PI / 4);
+        perp1.y = Math.sin(a + Math.PI / 4);
+
+        perp2.x = Math.cos(a - Math.PI / 4);
+        perp2.y = Math.sin(a - Math.PI / 4);
+
+
+        let off = (mag / 2) * Math.sin(t * Math.PI) + map(random.noise2D(p.x, p.y, freq), -1, 1, -0.1, 1) * 100;
+        let p1 = { x: p.x - perp1.x * off, y: p.y - perp1.y * off }
+
+        let p2 = { x: p.x + perp2.x * off, y: p.y + perp2.y * off }
+
         context.beginPath();
-       //  context.moveTo(p.x, p.y);
- 
-       //  context.lineTo(p1.x, p1.y);
- 
+        //  context.moveTo(p.x, p.y);
+
+        //  context.lineTo(p1.x, p1.y);
+
         drawLine(p, p1, {});
         context.stroke();
- 
+
         context.closePath();
-        
+
         context.beginPath();
-       //  context.moveTo(p.x, p.y);
- 
-       //  context.lineTo(p2.x, p2.y);
-       drawLine(p, p2, {});
+        //  context.moveTo(p.x, p.y);
+
+        //  context.lineTo(p2.x, p2.y);
+        drawLine(p, p2, {});
         context.stroke();
- 
+
         context.closePath();
- 
- 
+
+
+      }
     }
-  }
 
 
 
 
     function getTangent(points, t) {
-      let [p0, p1, p2]  = points;
-      let point = {x: 0, y: 0};
-  
-      point.x = 2*(p0.x*(t-1) - p1.x*(2*t-1) + p2.x*t);
-      point.y = 2*(p0.y*(t-1) - p1.y*(2*t-1) + p2.y*t);
-  
+      let [p0, p1, p2] = points;
+      let point = { x: 0, y: 0 };
+
+      point.x = 2 * (p0.x * (t - 1) - p1.x * (2 * t - 1) + p2.x * t);
+      point.y = 2 * (p0.y * (t - 1) - p1.y * (2 * t - 1) + p2.y * t);
+
       return point;
     }
-  
 
 
-    
-    
+
+
+
 
 
 
@@ -274,7 +374,7 @@ const sketch = () => {
       let distance = dist(start.x, start.y, end.x, end.y);
       let dt;
 
-      if(distance < 50) {
+      if (distance < 50) {
         dt = 2;
       }
       else if (distance < 100) {
@@ -398,7 +498,7 @@ const sketch = () => {
       context.lineCap = "round";
       let filterPoints = points.filter(p => !prePoints.includes(p));
       let val = random.gaussian(1, 0.05);
-   
+
 
       return filterPoints;
     }
@@ -440,25 +540,25 @@ const sketch = () => {
 
     function drawQuadraticLine(points, draw, inc) {
       let tInc = inc || 0.001;
-  
+
       let ps = [];
       context.beginPath();
-  
-      if(draw) {
-      context.moveTo(points[0].x, points[0].y);
-      context.quadraticCurveTo(points[1].x, points[1].y, points[2].x, points[2].y);
-      context.stroke();
-      context.closePath();
+
+      if (draw) {
+        context.moveTo(points[0].x, points[0].y);
+        context.quadraticCurveTo(points[1].x, points[1].y, points[2].x, points[2].y);
+        context.stroke();
+        context.closePath();
       }
       context.beginPath();
       for (let t = 0; t < 1 + tInc; t += tInc) {
         let point = getQuadraticPoint(points, t);
         ps.push(point);
       }
-  
-  
+
+
       context.closePath();
-  
+
       return ps;
     }
 
@@ -546,6 +646,19 @@ const sketch = () => {
 
     function dot(p1, p2) {
       return p1.x * p2.x + p1.y * p2.y;
+    }
+
+
+    function limitVector(v, max) {
+      let mag = Math.hypot(v.x, v.y);
+      let newV = { x: v.x, y: v.y }
+      if (mag > max) {
+        newV = normalize(newV);
+        newV.x *= max;
+        newV.y *= max;
+      }
+
+      return newV;
     }
 
     function getPointOnLine(p1, p2, t) {
