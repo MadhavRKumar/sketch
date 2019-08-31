@@ -1,20 +1,18 @@
 const canvasSketch = require('canvas-sketch');
 const random = require('canvas-sketch-util/random');
-const seed = window.performance.now();
-random.setSeed(seed);
+let seed;
 const settings = {
   dimensions: [3600, 3600],
-  prefix: seed
+  suffix: seed
 };
 
 const sketch = () => {
   return ({ context, width, height }) => {
+    seed  = window.performance.now();
+    random.setSeed(seed);
 
     let palettes = [
-      {
-        bg: "#111111",
-        stroke: "#e0e0e0"
-      },
+  
       {
         stroke: "#111111",
         bg: "#efefef"
@@ -62,33 +60,18 @@ const sketch = () => {
     context.clip(clip);
     
     
+  
+
+ 
     context.lineWidth = 2;
-    context.strokeStyle = accent;
-
-    for(let i = 0; i < 20000; i++) {
-      let x = getRandom(wMargin, width-wMargin);
-      let y = getRandom(hMargin, height-hMargin);
-      let noise = random.noise3D(x, y, 1, 0.002, 2*Math.PI);
-      let dir = {x:Math.cos(noise), y:Math.sin(noise)}
-      let mag = random.gaussian(width/250, 0.5);
-      dir = normalize(dir);
-      dir.x *= mag;
-      dir.y *= mag;
-
-      context.beginPath();
-      context.moveTo(x-dir.x, y-dir.y);
-      context.lineTo(x+dir.x, y+dir.y);
-      context.closePath();
-      context.stroke();
-    }
 
 
     context.strokeStyle = stroke;
     let inc = width/500;
 
-    for(let x = wMargin; x <= width-wMargin; x += inc) {
-      for(let y = hMargin; y <= height-hMargin; y += inc) {
-        let noise = random.noise3D(x, y, 1, 0.002, 2*Math.PI);
+    for(let x = wMargin; x <= width-wMargin; x += inc*random.gaussian(1, 0.1)) {
+      for(let y = hMargin; y <= height-hMargin; y += inc*random.gaussian(1, 0.1)) {
+        let noise = random.noise3D(x, y, 1, 0.001, 2*Math.PI);
         let dir = {x:Math.cos(noise), y:Math.sin(noise)}
         let mag = inc*random.gaussian(0.7, 0.2);
         dir = normalize(dir);
@@ -101,6 +84,27 @@ const sketch = () => {
         context.closePath();
         context.stroke();
       }
+    }
+
+
+
+    context.strokeStyle = accent;
+
+       for(let i = 0; i < 20000; i++) {
+      let x = getRandom(wMargin, width-wMargin);
+      let y = getRandom(hMargin, height-hMargin);
+      let noise = random.noise3D(x, y, 1, 0.001, 2*Math.PI);
+      let dir = {x:Math.cos(noise), y:Math.sin(noise)}
+      let mag = random.gaussian(width/250, 0.5);
+      dir = normalize(dir);
+      dir.x *= mag;
+      dir.y *= mag;
+
+      context.beginPath();
+      context.moveTo(x-dir.x, y-dir.y);
+      context.lineTo(x+dir.x, y+dir.y);
+      context.closePath();
+      context.stroke();
     }
 
 
