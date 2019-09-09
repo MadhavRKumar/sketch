@@ -1,5 +1,6 @@
 const canvasSketch = require('canvas-sketch');
 const random = require('canvas-sketch-util/random');
+const WebFont = require('webfontloader');
 
 const settings = {
   animate: true,
@@ -8,25 +9,30 @@ const settings = {
   duration: 5,
 };
 
+const fontName = 'Handlee'
+
 const sketch = () => {
   return ({ context, width, height, playhead }) => {
-    context.fillStyle = 'black';
+    context.fillStyle = '#111111';
     context.fillRect(0, 0, width, height);
     let wMargin = 0;
     let hMargin = 0;
 
-    context.strokeStyle = 'white';
+
+
+
+
+
+
+
+
+    context.strokeStyle = '#efefef';
     context.translate(width/2, height/2);
     let time = (Math.PI*playhead); //Math.sin(time);
-    for(let a = time; a <= Math.PI * 2 + time; a += Math.PI/200) {
+    for(let a = 0; a <= Math.PI * 2 ; a += Math.PI/200) {
       let point = getInfPoint(a, width/3);
 
-      // context.beginPath();
-      // context.arc(point.x, point.y, 5, 0, Math.PI*2);
-      // context.fill();
-
-      // context.closePath();
-
+  
       let normal = getInfNormal(a, width/3);
       let mag = 10;
       let p1 = {x: point.x - normal.x*mag, y: point.y - normal.y*mag}
@@ -34,7 +40,7 @@ const sketch = () => {
 
       
       context.beginPath();
-      context.lineWidth = clamp(random.noise4D(Math.cos(a)+1, Math.sin(a)+1, Math.cos(2*(time)), Math.sin(2*(time)), 0.5, 100), 1, 50);
+      //context.lineWidth = clamp(random.noise4D(Math.cos(a)+1, Math.sin(a)+1, Math.cos(2*(time)), Math.sin(2*(time)), 0.5, 100), 1, 50);
       context.moveTo(p1.x, p1.y);
       context.lineTo(p2.x, p2.y);
       context.stroke();
@@ -43,30 +49,6 @@ const sketch = () => {
 
     }
 
-    for(let a = time; a <= Math.PI * 2 + time; a += Math.PI/200) {
-      let point = getInfPoint(a, width/3);
-
-      // context.beginPath();
-      // context.arc(point.x, point.y, 5, 0, Math.PI*2);
-      // context.fill();
-
-      // context.closePath();
-
-      let normal = getInfNormal(a, width/3);
-      let mag = 10;
-      let p1 = {x: point.y - normal.y*mag, y: point.x - normal.x*mag}
-      let p2 = {x: point.y + normal.y*mag, y: point.x + normal.x*mag}
-
-      
-      context.beginPath();
-      context.lineWidth = clamp(random.noise4D(Math.cos(a)+1, Math.sin(a)+1, Math.cos(2*(time)), Math.sin(2*(time)), 0.5, 100), 1, 50);
-      context.moveTo(p1.x, p1.y);
-      context.lineTo(p2.x, p2.y);
-      context.stroke();
-
-      context.closePath();
-
-    }
     
     
     
@@ -580,5 +562,14 @@ const sketch = () => {
     }
   };
 };
+    
+WebFont.load({
+  google: {
+    families: [fontName]
+  },
+  active: renderText
+})
 
-canvasSketch(sketch, settings);
+function renderText() {
+  canvasSketch(sketch, settings);
+}
