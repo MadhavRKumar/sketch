@@ -13,25 +13,25 @@ const sketch = () => {
     let hMargin = 0;
 
     
-    let R = width/100;
+    let R = width/300;
 
     let maxR = width/1.3;
 
-    let N = 100;
+    let N = 500;
     let g = (maxR-R)/N;
 
-    for(let r = R; r <= maxR; r += random.gaussian(g)) {
 
     
     let start = getRandom(0, 2*Math.PI);
     let a = start;
-    while(a < start+2*Math.PI) {
+    let r = R;
+    while(r < maxR) {
 
-      let inc = getRandom(Math.PI/10, Math.PI/5);
+      let inc = getRandom(Math.PI/20, Math.PI/5);
     
-      let radius = getRandom(r - g*0.5, r + g*0.75);
+      let radius = getRandom(r - g*2, r + g*4);
 
-      context.lineWidth = random.gaussian(1);
+      context.lineWidth = random.gaussian(2);
       // context.beginPath();
       // context.arc(width/2, height/2, radius, a, a+inc);
       // context.stroke();
@@ -40,13 +40,21 @@ const sketch = () => {
       let center = {x: width/2, y: height/2};
       let range = {start: a, end: a+inc};
 
-      drawArc(center, radius, range);
+      let startY = Math.sin(a)*radius;
+
+      let chance = map(startY, 0, height/2, 0.5, 1);
+      if(random.chance(chance)){
+        drawArc(center, radius, range);
+
+      }
 
       a += inc;
+      r += random.gaussian(g/2);
+      g *= 0.999;
       }
 
       g *= 0.990;
-    }
+    
     
 
 
