@@ -17,7 +17,7 @@ const sketch = () => {
 
     let maxR = width/1.3;
 
-    let N = 500;
+    let N = 750;
     let g = (maxR-R)/N;
 
 
@@ -25,35 +25,50 @@ const sketch = () => {
     let start = getRandom(0, 2*Math.PI);
     let a = start;
     let r = R;
+
+    context.fillStyle = "#111111";
     while(r < maxR) {
 
       let inc = getRandom(Math.PI/20, Math.PI/5);
     
       let radius = getRandom(r - g*2, r + g*4);
 
-      context.lineWidth = random.gaussian(2);
-      // context.beginPath();
-      // context.arc(width/2, height/2, radius, a, a+inc);
-      // context.stroke();
-      // context.closePath();
+      context.lineWidth = random.gaussian(1);
+  
 
       let center = {x: width/2, y: height/2};
       let range = {start: a, end: a+inc};
 
-      let startY = Math.sin(a)*radius;
+      let arcLength = (inc/(2*Math.PI))*Math.PI*2*radius;
 
-      let chance = map(startY, 0, height/2, 0.5, 1);
-      if(random.chance(chance)){
-        drawArc(center, radius, range);
+      let dotCount;
 
+      if(arcLength < 100) {
+        dotCount = 10;
+      }
+      else if(arcLength < 300) {
+        dotCount = 100;
+      }
+      else {
+        dotCount = 200;
+      }
+
+      for(let i = 0; i < dotCount; i++) {
+        let randA = getRandom(range.start, range.end);
+        let x = Math.cos(randA)*radius + width/2;
+        let y = Math.sin(randA)*radius + height/2;
+        context.beginPath();
+        let s = map(r, R, maxR, 0.1, 2);
+        context.arc(x,y, Math.abs(random.gaussian(s)), 0, 2*Math.PI);
+        context.stroke();
+        context.closePath();
       }
 
       a += inc;
       r += random.gaussian(g/2);
-      g *= 0.999;
+      g *= 0.9995;
       }
 
-      g *= 0.990;
     
     
 
