@@ -13,6 +13,34 @@ const sketch = () => {
     let hMargin = 0;
 
     
+    let R = width/100;
+
+    let maxR = width/1.3;
+
+    let N = 100;
+    let g = (maxR-R)/N;
+
+    for(let r = R; r <= maxR; r += random.gaussian(g)) {
+
+    
+    let start = getRandom(0, 2*Math.PI);
+    let a = start;
+    while(a < start+2*Math.PI) {
+
+      let inc = getRandom(Math.PI/10, Math.PI/5);
+    
+      let radius = getRandom(r - g*0.5, r + g*0.75);
+
+      context.lineWidth = random.gaussian(1);
+      context.beginPath();
+      context.arc(width/2, height/2, radius, a, a+inc);
+      context.stroke();
+      context.closePath();
+      a += inc;
+      }
+
+      g *= 0.990;
+    }
     
 
 
