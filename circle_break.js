@@ -32,10 +32,16 @@ const sketch = () => {
       let radius = getRandom(r - g*0.5, r + g*0.75);
 
       context.lineWidth = random.gaussian(1);
-      context.beginPath();
-      context.arc(width/2, height/2, radius, a, a+inc);
-      context.stroke();
-      context.closePath();
+      // context.beginPath();
+      // context.arc(width/2, height/2, radius, a, a+inc);
+      // context.stroke();
+      // context.closePath();
+
+      let center = {x: width/2, y: height/2};
+      let range = {start: a, end: a+inc};
+
+      drawArc(center, radius, range);
+
       a += inc;
       }
 
@@ -46,7 +52,32 @@ const sketch = () => {
 
 
 
+    function drawArc(center, radius, range) {
+      let x1 = Math.cos(range.start)*radius + center.x;
+      let y1 = Math.sin(range.start)*radius + center.y;
 
+      let x4 = Math.cos(range.end)*radius + center.x;
+      let y4 = Math.sin(range.end)*radius + center.y;
+
+      let ax = x1 - center.x;
+      let ay = y1 - center.y;
+      let bx = x4 - center.x;
+      let by = y4 - center.y;
+
+      let q1 = ax*ax + ay*ay;
+      let q2 = q1 + ax * bx + ay * by;
+
+      let k2 = (4/3) * (Math.sqrt(2*q1*q2) - q2) / (ax * by - ay * bx);
+
+      let x2 = center.x + ax - k2 * ay;
+      let y2 = center.y + ay + k2 * ax;
+      let x3 = center.x + bx + k2 * by;                                
+      let y3 = center.y + by - k2 * bx;
+
+      let points = [{x:x1, y:y1}, {x:x2, y:y2}, {x:x3, y:y3}, {x:x4, y:y4}];
+
+      drawCubicLine(points, true);
+    }
 
     function intersects(line1, line2) {
 
