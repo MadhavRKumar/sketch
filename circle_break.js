@@ -17,7 +17,7 @@ const sketch = () => {
 
     let maxR = width/1.3;
 
-    let N = 750;
+    let N = 900;
     let g = (maxR-R)/N;
 
 
@@ -57,11 +57,18 @@ const sketch = () => {
         let randA = getRandom(range.start, range.end);
         let x = Math.cos(randA)*radius + width/2;
         let y = Math.sin(randA)*radius + height/2;
-        context.beginPath();
-        let s = map(r, R, maxR, 0.1, 2);
-        context.arc(x,y, Math.abs(random.gaussian(s)), 0, 2*Math.PI);
-        context.stroke();
-        context.closePath();
+
+        let chance = map(y, -height/16, height/2, 0, 0.5);
+
+
+        if(random.chance(chance)) {
+          context.beginPath();
+          let s = map(r, R, maxR, 0.1, 2);
+          context.arc(x,y, Math.abs(random.gaussian(s)), 0, 2*Math.PI);
+          context.stroke();
+          context.closePath();
+        }
+
       }
 
       a += inc;
