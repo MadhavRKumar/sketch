@@ -63,10 +63,10 @@ function drawRect(params) {
     corner.x -= w / 2;
     corner.y -= h / 2;
     let path = new Path2D();
-    drawLine({ x: corner.x, y: corner.y + h }, corner, { p: path, moveTo: true });
-    drawLine(corner, { x: corner.x + w, y: corner.y }, { p: path, moveTo: false });
-    drawLine({ x: corner.x + w, y: corner.y }, { x: corner.x + w, y: corner.y + h }, { p: path, moveTo: false })
-    drawLine({ x: corner.x + w, y: corner.y + h }, { x: corner.x, y: corner.y + h }, { p: path, moveTo: false })
+    drawLine({ x: corner.x, y: corner.y + h }, corner, { context: path, moveTo: true });
+    drawLine(corner, { x: corner.x + w, y: corner.y }, { context: path });
+    drawLine({ x: corner.x + w, y: corner.y }, { x: corner.x + w, y: corner.y + h }, { context: path })
+    drawLine({ x: corner.x + w, y: corner.y + h }, { x: corner.x, y: corner.y + h }, { context: path })
     if (!noFill)
         context.fill(path);
     context.stroke(path);
@@ -75,8 +75,11 @@ function drawRect(params) {
 }
 
 function drawLine(start, end, options) {
-    let { p, moveTo, control } = options;
-    let ctx = p || context;
+    let { context, moveTo = false, control } = options;
+
+    if(!context) throw new Error("drawLine requires a context!!!");
+
+
     let distance = dist(start.x, start.y, end.x, end.y);
     let dt;
 
@@ -99,7 +102,7 @@ function drawLine(start, end, options) {
 
 
     if (moveTo) {
-        ctx.moveTo(start.x, start.y);
+        context.moveTo(start.x, start.y);
     }
     let prev = start;
     for (let t = 0; t <= 2.0; t += dt) {
@@ -108,7 +111,7 @@ function drawLine(start, end, options) {
         let normal = { x: -tan.y, y: tan.x };
         normal = normalize(normal);
         let ctrl = getSquiggleControlPoint(prev, cur, normal);
-        ctx.quadraticCurveTo(ctrl.x, ctrl.y, cur.x, cur.y);
+        context.quadraticCurveTo(ctrl.x, ctrl.y, cur.x, cur.y);
 
         prev = cur;
     }
@@ -243,24 +246,32 @@ function poisson(prePoints, radius) {
 
 
 
-function drawQuadraticLine(points, inc, ctx) {
-    let tInc = inc || 1.0 / 10;
-    let c = ctx || context;
+function drawQuadraticLine(params) {
+
+    let 
+    {
+        points, 
+        inc =  1.0 / 10, 
+        context
+    } 
+    = params;
+
+    if(!context) throw new Error("drawQuadraticLine requires a context!!!");
 
     let ps = [];
-    c.beginPath();
-    let prev = getQuadraticPoint(points, tInc / 5);
+    context.beginPath();
+    let prev = getQuadraticPoint(points, inc / 5);
     ps.push(prev);
-    for (let t = tInc; t <= 1 - tInc / 10; t += tInc) {
+    for (let t = inc; t <= 1 - inc / 10; t += inc) {
         let cur = getQuadraticPoint(points, t);
         ps.push(cur);
-        drawLine(prev, cur, { p: c });
-        c.stroke();
+        drawLine(prev, cur, { context: context });
+        context.stroke();
         prev = cur;
     }
 
 
-    c.closePath();
+    context.closePath();
 
     return ps;
 }
