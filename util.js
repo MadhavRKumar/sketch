@@ -301,13 +301,25 @@ function getQuadraticTangent(points, t) {
     return point;
 }
 
-function drawCubicLine(points, draw, inc) {
-    let tInc = inc || 0.15;
+function drawCubicLine(params) {
+
+    let 
+    {
+        context,
+        points, 
+        draw = true, 
+        inc =  0.15
+    }
+    = params;
+
     let ps = [];
+
+    if(!context) throw new Error("drawCubicLine requires a context!!!");
+
 
     let prev = getCubicPoint(points, 0);
     context.beginPath();
-    for (let t = tInc; t <= 1 + tInc; t += tInc) {
+    for (let t = inc; t <= 1 + inc; t += inc) {
         let point = getCubicPoint(points, t);
         ps.push(point);
 
