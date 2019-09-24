@@ -149,13 +149,20 @@ function getSquiggleControlPoint(prev, cur, norm) {
 }
 
 
-function poisson(prePoints, radius) {
+function poisson(params) {
 
-    let r = radius || 20,
-        cellSize = r / Math.sqrt(2),
-        w = width,
-        rows = Math.ceil(w / cellSize) + 1,
-        cols = Math.ceil(w / cellSize) + 1;
+    let {
+        prePoints = [],
+        r = 20,
+        width,
+        height,
+        wMargin = 0,
+        hMargin = 0
+    } = params;
+
+    let cellSize = r / Math.sqrt(2),
+        rows = Math.ceil( width / cellSize) + 1,
+        cols = Math.ceil( height / cellSize) + 1;
     let grid = new Array(rows), active = [], points = [];
 
     if (prePoints) {
