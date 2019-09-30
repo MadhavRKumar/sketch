@@ -1,6 +1,6 @@
 const canvasSketch = require('canvas-sketch');
 const random = require('canvas-sketch-util/random');
-let seed;
+let     seed  = window.performance.now();
 const settings = {
   dimensions: [3600, 3600],
   suffix: seed
@@ -8,72 +8,120 @@ const settings = {
 
 const sketch = () => {
   return ({ context, width, height }) => {
-    seed  = window.performance.now();
     random.setSeed(seed);
+    let wMargin = width/8;
+    let hMargin = height/8;
+   
+
+    let risographColors =
+      ["#F6679D", "#EA3B2E", "#9B374C",
+        "#348D5E", "#F4E557", "#FE713B",
+        "#00767E", "#354163", "#5B5292"
+      ]
+
+    let
+      [
+        pink, red, burgundy, green, yellow, orange, teal, blue, purple
+      ] = risographColors;
 
     let palettes = [
-  
+
       {
-        stroke: "#111111",
-        bg: "#efefef"
+        bg: '#fffdf4',
+        strokes:
+          [
+            { value: green, weight: 100 },
+            { value: teal, weight: 80 },
+            { value: burgundy, weight: 80 }
+
+          ]
       }
     ]
+
+    let palette = getRandomElem(palettes);
 
 
 
     let accent = "#00597A";
 
-    let {bg, stroke} = getRandomElem(palettes);
 
 
-    context.fillStyle = bg;
+    context.fillStyle = palette.bg;
     context.fillRect(0, 0, width, height);
-    let wMargin = width/6;
-    let hMargin = height/6;
-
-
-    let hSize = height - 2*hMargin;
-    let wSize = hSize*0.5;
-    let clip = new Path2D();
-    let off = wSize*0.25;
-
-    context.lineWidth = 8;
-    context.strokeStyle = stroke;
-    drawRect(width/2, height/2, hSize, hSize);
-    
-    let points = new Array(4);
-    let center = {x: width/2, y: height/2}
-    let ratio = 5/8;
-    let oneMinusRatio = 1 - ratio;
-    
-    points[0] = {x: center.x - wSize/2, y: center.y + hSize*oneMinusRatio};
-    points[3] = {x: center.x + wSize/2, y: center.y + hSize*oneMinusRatio};
-
-    points[1] = {x: points[0].x - off, y: center.y - hSize*ratio};
-    points[2] = {x: points[3].x + off, y: center.y - hSize*ratio}
-
-
-    drawCubicLine(points, {draw: true, p: clip, inc: 0.02});
-    drawLine(points[0], points[3], {moveTo: true, p: clip});
-    context.lineWidth = 6;
-    context.stroke(clip);
-    context.clip(clip);
     
     
+    for(let i = 0; i < 4; i++) {
+      drawFingers();
+
+    }
+
+
+
+    
+    function drawFingers() {
+
+      let hSize = height/10;
+      let wSize = hSize*0.5;
   
 
- 
-    context.lineWidth = 2;
+    let clip = new Path2D();
+
+    let points = poisson(false, [], hSize);
+    for(p of points) {
+      let h = random.gaussian(hSize, 50);
+      let w = h*0.5; //random.gaussian(wSize, 50);
+      drawFinger({x:p.x, y:p.y}, h, w, clip);
+
+    }
+
+    //context.clip(clip);
 
 
-    context.strokeStyle = stroke;
+
+
+    }
+
+    function drawFinger(center, hSize, wSize, clip) {
+      context.save();
+      context.translate(center.x, center.y);
+      let a = map(random.noise2D(center.x, center.y, 0.001), -1, 1, -Math.PI/2, Math.PI/2);//getRandom(0, 2*Math.PI);
+      context.rotate(a);
+      //context.translate(-center.x, -center.y);
+      
+      let off = wSize*0.25;
+
+      context.lineWidth = 10;
+      context.strokeStyle = palette.bg; //random.weightedSet(palette.strokes);
+      context.fillStyle = random.weightedSet(palette.strokes) + 'AA';
+      
+      let points = new Array(4);
+      let ratio = 5/8;
+      let oneMinusRatio = 1 - ratio;
+      
+      points[0] = {x: -wSize/2, y: hSize*oneMinusRatio};
+      points[3] = {x: wSize/2, y: hSize*oneMinusRatio};
+  
+      points[1] = {x: points[0].x - off, y: -hSize*ratio};
+      points[2] = {x: points[3].x + off, y: -hSize*ratio}
+  
+  
+      drawCubicLine(points, {draw: true, p: clip, inc: 0.04});
+      drawLine(points[0], points[3], {moveTo: true, p: clip});
+      context.lineWidth = 6;
+      context.stroke(clip);
+      context.fill(clip);
+      context.clip(clip);
+      let thicc = 2;
+    context.lineWidth = thicc;
+
+
     let inc = width/500;
 
-    for(let x = wMargin; x <= width-wMargin; x += inc*random.gaussian(1, 0.1)) {
-      for(let y = hMargin; y <= height-hMargin; y += inc*random.gaussian(1, 0.1)) {
-        let noise = random.noise3D(x, y, 1, 0.001, 2*Math.PI);
+    for(let x = -wSize; x <= wSize; x += 1.5*inc*random.gaussian(1, 0.1)) {
+      for(let y = -hSize; y <= hSize; y += 1.5*inc*random.gaussian(1, 0.1)) {
+        let noise = random.noise3D(x, y, 1, 0.0025, 2*Math.PI);
         let dir = {x:Math.cos(noise), y:Math.sin(noise)}
-        let mag = inc*random.gaussian(0.7, 0.2);
+        let mag = inc*random.gaussian(1, 0.2);
         dir = normalize(dir);
         dir.x *= mag;
         dir.y *= mag;
@@ -85,35 +133,11 @@ const sketch = () => {
         context.stroke();
       }
     }
+      context.restore();
 
 
 
-    context.strokeStyle = accent;
-
-       for(let i = 0; i < 20000; i++) {
-      let x = getRandom(wMargin, width-wMargin);
-      let y = getRandom(hMargin, height-hMargin);
-      let noise = random.noise3D(x, y, 1, 0.001, 2*Math.PI);
-      let dir = {x:Math.cos(noise), y:Math.sin(noise)}
-      let mag = random.gaussian(width/250, 0.5);
-      dir = normalize(dir);
-      dir.x *= mag;
-      dir.y *= mag;
-
-      context.beginPath();
-      context.moveTo(x-dir.x, y-dir.y);
-      context.lineTo(x+dir.x, y+dir.y);
-      context.closePath();
-      context.stroke();
     }
-
-
-    //let imageData = context.toDataURL("image/png");
-
-    //context.clearRect(0,0, width, height);
-
-    
-
 
 
 
@@ -487,14 +511,15 @@ const sketch = () => {
       let c = p || context;
 
       let prev = getCubicPoint(points, 0);
+      let moveTo = true;
       for (let t = tInc; t <= 1 + tInc; t += tInc) {
         let point = getCubicPoint(points, t);
         ps.push(point);
 
-          drawLine(prev, point, {p:c});
+          drawLine(prev, point, {p:c, moveTo});
         
         prev = point;
-
+        moveTo = false;
       }
 
 
