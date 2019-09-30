@@ -1,9 +1,14 @@
 const canvasSketch = require("canvas-sketch");
 const random = require("canvas-sketch-util/random");
 const util = require("./util");
+const Color = require("canvas-sketch-util/color");
+
+let seed  = window.performance.now();
+
 
 const settings = {
-  dimensions: [3000, 3000]
+  dimensions: [3600, 3600],
+  suffix: seed
 };
 
 const sketch = () => {
@@ -13,8 +18,10 @@ const sketch = () => {
     let wMargin = width / 10;
     let hMargin = height / 10;
 
-    let r = width / (util.getRandomInt(8, 20));
-
+    random.setSeed(seed);
+console.log(seed);
+    let r = width / (util.getRandomInt(15, 20));
+    let chance = random.chance(0.5);
     let points = util.poisson({
       width,
       height,
@@ -24,20 +31,30 @@ const sketch = () => {
     });
     let handSize = r / 2;
 
-    context.fillStyle = "#edb961";
+    let c = "#edb961";
 
-    context.lineWidth = 3;
-
+    let [hue, s, l] = Color.parse(c).hsl;
+    
     for (pos of points) {
-      let w = random.gaussian(handSize, 1);
-      let h = w * 1.1;
+      let w = random.gaussian(handSize, 10);
+      let h = w * random.gaussian(1, 0.1);
+
+  
 
       context.save();
+      
       context.translate(pos.x, pos.y);
       let a = util.getRandom(0, 2 * Math.PI);
       let b = random.noise2D(pos.x, pos.y, 0.0005, 2*Math.PI);
-      context.rotate(b);
+      context.rotate(chance ? a : b);
       context.translate(-pos.x, -pos.y);
+
+
+      let color = Color.offsetHSL(c, util.getRandom(-0.1, 0.1)*hue,  util.getRandom(-0.05, 0.05)*s, util.getRandom(-0.05, 0.05)*l).hex;
+
+      context.fillStyle = color;
+      context.strokeStyle = Color.offsetHSL(color, 0, 0, -35).hex;
+      context.lineWidth = 6;
       drawHand({
         pos,
         w,
@@ -47,14 +64,7 @@ const sketch = () => {
       context.restore();
     }
 
-    // let w = width/2;
-    // let h = height/3;
-    // let pos = {x:width/2, y:height/2};
-    // drawHand({
-    //   pos,
-    //   w,
-    //   h
-    // })
+
 
     function drawHand(params) {
       let { pos, w, h } = params;
@@ -81,6 +91,7 @@ const sketch = () => {
         a += aInc;
       }
       context.closePath();
+      
       context.fill();
       context.stroke();
     }
