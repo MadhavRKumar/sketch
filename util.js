@@ -5,7 +5,7 @@ const random = require('canvas-sketch-util/random');
 
 function drawCurve(params) {
     let {ps, context} = params;
-    context.beginPath();
+    
 
     context.moveTo(ps[0].x, ps[0].y);
 
@@ -18,8 +18,7 @@ function drawCurve(params) {
     }
     // curve through the last two points
     context.quadraticCurveTo(ps[i].x, ps[i].y, ps[i+1].x,ps[i+1].y)
-    context.stroke();
-    context.closePath();
+
 }
 
 
