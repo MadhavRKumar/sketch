@@ -1,16 +1,17 @@
 const canvasSketch = require('canvas-sketch');
 const random = require('canvas-sketch-util/random');
 const util = require('./util');
+const Color = require('canvas-sketch-util/color');
 let seed;
+seed  = window.performance.now();
 
 const settings = {
-  dimensions: [2048, 2048],
+  dimensions: [3600, 3600],
   suffix: seed
 };
 
 const sketch = () => {
   return ({ context, width, height }) => {
-    seed  = window.performance.now();
     random.setSeed(seed)
 
 
