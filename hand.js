@@ -3,7 +3,7 @@ const random = require("canvas-sketch-util/random");
 const util = require("./util");
 const Color = require("canvas-sketch-util/color");
 
-let seed  = window.performance.now();
+let seed  = 258;//window.performance.now();
 
 
 const settings = {
@@ -68,25 +68,34 @@ console.log(seed);
 
     function drawHand(params) {
       let { pos, w, h } = params;
-
+      let backwards = random.chance(0.9);
       context.beginPath();
-      context.arc(pos.x, pos.y, w / 2, 0, Math.PI);
+      if(backwards) {
+        context.arc(pos.x, pos.y, w / 2, Math.PI, 0, true);
+      }
+      else{
+        context.arc(pos.x, pos.y, w / 2, 0, Math.PI);
+
+      }
       let width = w / 5;
       let aStart = (7 * Math.PI) / 24;
       let aEnd = 1.4644;
-      let a = aStart;
       let aInc = (aEnd - aStart) / 5;
 
-      for (
-        let x = pos.x - w / 2;
-        x <= pos.x + w / 2 - width + 0.000001;
-        x += width
-      ) {
+      let a = aStart;
+
+
+
+      let tStart = backwards ? 1 : 0;
+      let tInc = backwards ? -1/5 : 1/5
+      for (let t = tStart; (t < 1 && !backwards) || (t > 0.00001 && backwards); t += tInc) {
+        let x = util.lerp(pos.x-w/2, pos.x+w/2, t);
         let height = Math.sin(a * a * a) * h;
         drawFinger({
           p: { x, y: pos.y },
           height,
-          width
+          width,
+          backwards
         });
         a += aInc;
       }
@@ -97,17 +106,31 @@ console.log(seed);
     }
 
     function drawFinger(params) {
-      let { p, height, width } = params;
+      let { p, height, width, backwards } = params;
 
       context.lineTo(p.x, p.y - height);
-      context.arc(
-        p.x + width / 2,
-        p.y - height,
-        width / 2,
-        Math.PI,
-        2 * Math.PI
-      );
-      context.lineTo(p.x + width, p.y);
+      if(backwards) {
+        context.arc(
+          p.x - width / 2,
+          p.y - height,
+          width / 2,
+          2 * Math.PI,
+          Math.PI,
+          true
+        );
+        context.lineTo(p.x - width, p.y);
+      }
+      else {
+        context.arc(
+          p.x + width / 2,
+          p.y - height,
+          width / 2,
+          Math.PI,
+          2 * Math.PI
+        );
+        context.lineTo(p.x + width, p.y);
+      }
+   
     }
   };
 };

@@ -1,6 +1,6 @@
 const canvasSketch = require('canvas-sketch');
 const random = require('canvas-sketch-util/random');
-let     seed  = window.performance.now();
+let     seed  = 542; //window.performance.now();
 const settings = {
   dimensions: [3600, 3600],
   suffix: seed
@@ -115,11 +115,12 @@ const sketch = () => {
     context.lineWidth = thicc;
 
 
-    let inc = width/500;
-
+    let inc = width/(getRandom(400, 800));
+    let val = 100*random.value();
+    let freq = getRandom(0.002, 0.0029);
     for(let x = -wSize; x <= wSize; x += 1.5*inc*random.gaussian(1, 0.1)) {
       for(let y = -hSize; y <= hSize; y += 1.5*inc*random.gaussian(1, 0.1)) {
-        let noise = random.noise3D(x, y, 1, 0.0025, 2*Math.PI);
+        let noise = random.noise3D(x, y, val, freq, 2*Math.PI);
         let dir = {x:Math.cos(noise), y:Math.sin(noise)}
         let mag = inc*random.gaussian(1, 0.2);
         dir = normalize(dir);
