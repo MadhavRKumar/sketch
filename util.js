@@ -3,6 +3,25 @@ const random = require('canvas-sketch-util/random');
 
 
 
+function drawCurve(params) {
+    let {ps, context} = params;
+    context.beginPath();
+
+    context.moveTo(ps[0].x, ps[0].y);
+
+
+    for (i = 1; i < ps.length - 2; i ++)
+    {
+    var xc = (ps[i].x + ps[i + 1].x) / 2;
+    var yc = (ps[i].y + ps[i + 1].y) / 2;
+    context.quadraticCurveTo(ps[i].x, ps[i].y, xc, yc);
+    }
+    // curve through the last two points
+    context.quadraticCurveTo(ps[i].x, ps[i].y, ps[i+1].x,ps[i+1].y)
+    context.stroke();
+    context.closePath();
+}
+
 
 
 
@@ -408,6 +427,10 @@ function map(n, start1, stop1, start2, stop2) {
     return ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
 }
 
+function lerp(start, end, t) {
+    return (end-start)*t + start;
+}
+
 function quadMap(n, start1, stop1, start2, stop2) {
     let b = start2,
         c = stop2 - start2,
@@ -438,6 +461,7 @@ function dist(x1, y1, x2, y2) {
 
 
 let util = {
+    drawCurve: drawCurve,
     intersects: intersects,
     drawRect: drawRect,
     drawLine: drawLine,
@@ -449,6 +473,7 @@ let util = {
     getPointOnLine: getPointOnLine,
     getRandom: getRandom,
     map: map,
+    lerp: lerp,
     quadMap: quadMap,
     getRandomElem: getRandomElem,
     getRandomInt: getRandomInt,
