@@ -277,26 +277,34 @@ function drawQuadraticLine(params) {
     {
         points, 
         inc =  1.0 / 10, 
-        context
+        context,
+        draw = true,
     } 
     = params;
 
     if(!context) throw new Error("drawQuadraticLine requires a context!!!");
 
     let ps = [];
-    context.beginPath();
-    let prev = getQuadraticPoint(points, inc / 5);
+    if(draw) {
+        context.beginPath();
+    }
+    let prev = getQuadraticPoint(points, 0);
     ps.push(prev);
-    for (let t = inc; t <= 1 - inc / 10; t += inc) {
+    for (let t = inc; t <= 1; t += inc) {
         let cur = getQuadraticPoint(points, t);
         ps.push(cur);
-        drawLine(prev, cur, { context: context });
-        context.stroke();
+        if(draw) {
+            drawLine(prev, cur, { context: context });
+            context.stroke();
+        }
+  
         prev = cur;
     }
 
-
-    context.closePath();
+    if(draw)
+    {
+        context.closePath();
+    }
 
     return ps;
 }
