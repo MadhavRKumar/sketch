@@ -23,14 +23,14 @@ const sketch = () => {
     let hMargin = 0;
 
 
-    let N = 10;
+    let N = 20;
 
     context.filter = "drop-shadow(10px 20px 10px #666666)"
     for(let n = 0; n < N; n++) {
 
     
     let y = height/2;
-    let yRange = height/10;
+    let yRange = height/15;
     let xInc = width/12;
     let firstControl = {
       x: util.getRandom(-xInc + xInc/4, -xInc + 3*xInc/4),
@@ -63,7 +63,7 @@ const sketch = () => {
     // CREATING TOP AND BOTTOM
     let top = [];
     let bottom = [];
-    let w = width/100;
+    let w = random.gaussian(width/100, 12);
     for(let i = 0; i < centerPoints.length-1; i++) {
       let start = centerPoints[i];
       let end = centerPoints[i+1];
@@ -129,7 +129,7 @@ const sketch = () => {
         context.lineWidth = 1;
         norm = util.normalize(norm);
 
-        let mag = random.gaussian(20);
+        let mag = random.gaussian(w/1.5, 4);
   
         norm.x *= mag;
         norm.y *= mag;
