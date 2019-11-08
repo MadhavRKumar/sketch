@@ -4,20 +4,19 @@ const random = require('canvas-sketch-util/random');
 
 
 function drawCurve(params) {
-    let {ps, context} = params;
-    
+    let { ps, context } = params;
+
 
     context.moveTo(ps[0].x, ps[0].y);
 
 
-    for (i = 1; i < ps.length - 2; i ++)
-    {
-    var xc = (ps[i].x + ps[i + 1].x) / 2;
-    var yc = (ps[i].y + ps[i + 1].y) / 2;
-    context.quadraticCurveTo(ps[i].x, ps[i].y, xc, yc);
+    for (i = 1; i < ps.length - 2; i++) {
+        var xc = (ps[i].x + ps[i + 1].x) / 2;
+        var yc = (ps[i].y + ps[i + 1].y) / 2;
+        context.quadraticCurveTo(ps[i].x, ps[i].y, xc, yc);
     }
     // curve through the last two points
-    context.quadraticCurveTo(ps[i].x, ps[i].y, ps[i+1].x,ps[i+1].y)
+    context.quadraticCurveTo(ps[i].x, ps[i].y, ps[i + 1].x, ps[i + 1].y)
 
 }
 
@@ -64,19 +63,17 @@ function intersects(line1, line2) {
 
 
 function drawRect(params) {
-    let 
-    {
-        context, 
-        center, 
-        w, 
-        h, 
-        fill = true,
-        stroke = true
+    let
+        {
+            context,
+            center,
+            w,
+            h,
+            noFill = false
+        }
+            = params;
 
-    } 
-    = params;
-
-    if(!context) throw new Error("drawRect requires a context!!!");
+    if (!context) throw new Error("drawRect requires a context!!!");
 
     let corner = { x: center.x, y: center.y };
 
@@ -103,7 +100,7 @@ function drawRect(params) {
 function drawLine(start, end, options) {
     let { context, moveTo = false, control } = options;
 
-    if(!context) throw new Error("drawLine requires a context!!!");
+    if (!context) throw new Error("drawLine requires a context!!!");
 
 
     let distance = dist(start.x, start.y, end.x, end.y);
@@ -180,15 +177,17 @@ function poisson(params) {
     let {
         prePoints = [],
         r = 20,
-        width,
-        height,
-        wMargin = 0,
-        hMargin = 0
+        min,
+        max,
+        w,
+        h,
     } = params;
-
+    let width = max.x - min.x;
+    let height = max.y - min.y;
+    let scale = { x: width / w, y: height / h }
     let cellSize = r / Math.sqrt(2),
-        rows = Math.ceil( width / cellSize) + 1,
-        cols = Math.ceil( height / cellSize) + 1;
+        rows = Math.ceil((height+min.y) / cellSize) + 1,
+        cols = Math.ceil((width+min.x) / cellSize) + 1;
     let grid = new Array(rows), active = [], points = [];
 
     if (prePoints) {
@@ -201,7 +200,7 @@ function poisson(params) {
         }
     }
 
-    let p0 = { x: getRandom(wMargin, width - wMargin), y: getRandom(wMargin, width - wMargin) };
+    let p0 = { x: getRandom(min.x, max.x), y: getRandom(min.y, max.y) };
     active.push(p0);
     points.push(p0);
     for (let p of points) {
@@ -215,7 +214,7 @@ function poisson(params) {
 
         let found = false;
 
-        for (let tries = 0; tries < 100; tries++) {
+        for (let tries = 0; tries < 5; tries++) {
             let theta = getRandom(0, 2 * Math.PI);
             let curR = getRandom(r, 2 * r);
             let pNew = { x: p.x + curR * Math.cos(theta), y: p.y + curR * Math.sin(theta) }
@@ -236,16 +235,15 @@ function poisson(params) {
 
     }
 
-
     let filterPoints = points.filter(p => !prePoints.includes(p));
 
     return filterPoints;
 
     function isValid(p, grid, cellsize, rows, cols, radius) {
-
-        if (p.x < wMargin || p.x >= width - wMargin || p.y < hMargin || p.y >= height - hMargin) {
+        if (p.x < min.x || p.x > max.x || p.y < min.y || p.y > max.y) {
             return false;
         }
+
         let xIndex = Math.floor(p.x / cellsize);
         let yIndex = Math.floor(p.y / cellsize);
         for (let i = -1; i <= 1; i++) {
@@ -265,14 +263,13 @@ function poisson(params) {
                 }
             }
         }
-
+        // console.log({p, min, max})
         return true;
     }
 
     function insertPoint(grid, cellsize, p0) {
-        let x = Math.floor(p0.x / cellsize);
-        let y = Math.floor(p0.y / cellsize);
-
+        let x = Math.floor((p0.x) / cellsize);
+        let y = Math.floor((p0.y)/ cellsize);
         grid[y][x] = p0;
     }
 }
@@ -281,19 +278,19 @@ function poisson(params) {
 
 function drawQuadraticLine(params) {
 
-    let 
-    {
-        points, 
-        inc =  1.0 / 10, 
-        context,
-        draw = true,
-    } 
-    = params;
+    let
+        {
+            points,
+            inc = 1.0 / 10,
+            context,
+            draw = true,
+        }
+            = params;
 
-    if(!context) throw new Error("drawQuadraticLine requires a context!!!");
+    if (!context) throw new Error("drawQuadraticLine requires a context!!!");
 
     let ps = [];
-    if(draw) {
+    if (draw) {
         context.beginPath();
     }
     let prev = getQuadraticPoint(points, 0);
@@ -301,16 +298,15 @@ function drawQuadraticLine(params) {
     for (let t = inc; t <= 1; t += inc) {
         let cur = getQuadraticPoint(points, t);
         ps.push(cur);
-        if(draw) {
+        if (draw) {
             drawLine(prev, cur, { context: context });
             context.stroke();
         }
-  
+
         prev = cur;
     }
 
-    if(draw)
-    {
+    if (draw) {
         context.closePath();
     }
 
@@ -344,18 +340,18 @@ function getQuadraticTangent(points, t) {
 
 function drawCubicLine(params) {
 
-    let 
-    {
-        context,
-        points, 
-        draw = true, 
-        inc =  0.15
-    }
-    = params;
+    let
+        {
+            context,
+            points,
+            draw = true,
+            inc = 0.15
+        }
+            = params;
 
     let ps = [];
 
-    if(!context) throw new Error("drawCubicLine requires a context!!!");
+    if (!context) throw new Error("drawCubicLine requires a context!!!");
 
 
     let prev = getCubicPoint(points, 0);
@@ -443,7 +439,7 @@ function map(n, start1, stop1, start2, stop2) {
 }
 
 function lerp(start, end, t) {
-    return (end-start)*t + start;
+    return (end - start) * t + start;
 }
 
 function quadMap(n, start1, stop1, start2, stop2) {
