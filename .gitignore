@@ -1,3 +1,7 @@
 *.png
+*.gif
+*.mov
+*.avi
+*.mp4
 .vscode
 gimp

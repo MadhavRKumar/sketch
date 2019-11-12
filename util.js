@@ -70,7 +70,9 @@ function drawRect(params) {
         center, 
         w, 
         h, 
-        noFill = false
+        fill = true,
+        stroke = true
+
     } 
     = params;
 
@@ -85,9 +87,15 @@ function drawRect(params) {
     drawLine(corner, { x: corner.x + w, y: corner.y }, { context: path });
     drawLine({ x: corner.x + w, y: corner.y }, { x: corner.x + w, y: corner.y + h }, { context: path })
     drawLine({ x: corner.x + w, y: corner.y + h }, { x: corner.x, y: corner.y + h }, { context: path })
-    if (!noFill)
+    if (fill) {
         context.fill(path);
-    context.stroke(path);
+
+    }
+    
+    if(stroke) {
+        context.stroke(path);
+    }
+    
     path.closePath();
 
 }

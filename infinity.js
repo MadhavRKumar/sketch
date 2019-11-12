@@ -3,19 +3,18 @@ const random = require('canvas-sketch-util/random');
 
 const settings = {
   animate: true,
-  dimensions: [2048, 2048],
-  fps: 30,
-  duration: 5,
+  dimensions: [1024, 1024],
+  duration: 4,
 };
 
 const sketch = () => {
   return ({ context, width, height, playhead }) => {
-    context.fillStyle = 'black';
+    context.fillStyle = 'white';
     context.fillRect(0, 0, width, height);
     let wMargin = 0;
     let hMargin = 0;
 
-    context.strokeStyle = 'white';
+    context.strokeStyle = 'black';
     context.translate(width/2, height/2);
     let time = (Math.PI*playhead); //Math.sin(time);
     for(let a = time; a <= Math.PI * 2 + time; a += Math.PI/200) {
@@ -28,13 +27,13 @@ const sketch = () => {
       // context.closePath();
 
       let normal = getInfNormal(a, width/3);
-      let mag = 10;
+      let mag = 5;
       let p1 = {x: point.x - normal.x*mag, y: point.y - normal.y*mag}
       let p2 = {x: point.x + normal.x*mag, y: point.y + normal.y*mag}
 
       
       context.beginPath();
-      context.lineWidth = clamp(random.noise4D(Math.cos(a)+1, Math.sin(a)+1, Math.cos(2*(time)), Math.sin(2*(time)), 0.5, 100), 1, 50);
+      context.lineWidth = clamp(random.noise4D(Math.cos(a)+1, Math.sin(a)+1, Math.cos(2*(time)), Math.sin(2*(time)), 0.5, 50), 1, 50);
       context.moveTo(p1.x, p1.y);
       context.lineTo(p2.x, p2.y);
       context.stroke();
@@ -59,7 +58,7 @@ const sketch = () => {
 
       
       context.beginPath();
-      context.lineWidth = clamp(random.noise4D(Math.cos(a)+1, Math.sin(a)+1, Math.cos(2*(time)), Math.sin(2*(time)), 0.5, 100), 1, 50);
+      context.lineWidth = clamp(random.noise4D(Math.cos(a)+1, Math.sin(a)+1, Math.cos(2*(time)), Math.sin(2*(time)), 0.5, 50), 1, 50);
       context.moveTo(p1.x, p1.y);
       context.lineTo(p2.x, p2.y);
       context.stroke();
