@@ -178,13 +178,10 @@ function poisson(params) {
         prePoints = [],
         r = 20,
         min,
-        max,
-        w,
-        h,
+        max
     } = params;
     let width = max.x - min.x;
     let height = max.y - min.y;
-    let scale = { x: width / w, y: height / h }
     let cellSize = r / Math.sqrt(2),
         rows = Math.ceil((height+min.y) / cellSize) + 1,
         cols = Math.ceil((width+min.x) / cellSize) + 1;
