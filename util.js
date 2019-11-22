@@ -427,6 +427,36 @@ function getPointOnLine(p1, p2, t) {
     }
 }
 
+function convexHull(points) {
+    points.sort(function(a,b) {
+        return a.x == b.x ? a.y - b.y : a.x - b.x
+    });
+
+    let lower = [];
+
+    for(let i = 0; i < points.length; i++) {
+        while(lower.length >= 2 && cross(loser[lower.length-2], lower[lower.length - 1], points[i]) <= 0) {
+            lower.pop();
+        }
+        lower.push(points[i]);
+    }
+
+    let upper = [];
+
+    for(let i = points.legnth - 1; i >= 0; i--) {
+        while(upper.length >= 2 && 
+            cross(upper[upper.length-2], upper[upper.length-1], points[i]) <= 0) {
+                upper.pop();
+            }
+        upper.push(points[i]);
+    }
+
+    upper.pop();
+    lower.pop();
+
+    return lower.concat(upper);
+}
+
 function getRandom(min, max) {
     return random.value() * (max - min) + min
 }
@@ -464,6 +494,10 @@ function clamp(val, min, max) {
 
 function dist(x1, y1, x2, y2) {
     return Math.hypot(x1 - x2, y1 - y2);
+}
+
+function cross(a, b, o) {
+    return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
 }
 
 
