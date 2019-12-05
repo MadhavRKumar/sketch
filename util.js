@@ -435,7 +435,7 @@ function convexHull(points) {
     let lower = [];
 
     for(let i = 0; i < points.length; i++) {
-        while(lower.length >= 2 && cross(loser[lower.length-2], lower[lower.length - 1], points[i]) <= 0) {
+        while(lower.length >= 2 && cross(lower[lower.length-2], lower[lower.length - 1], points[i]) <= 0) {
             lower.pop();
         }
         lower.push(points[i]);
@@ -443,7 +443,7 @@ function convexHull(points) {
 
     let upper = [];
 
-    for(let i = points.legnth - 1; i >= 0; i--) {
+    for(let i = points.length - 1; i >= 0; i--) {
         while(upper.length >= 2 && 
             cross(upper[upper.length-2], upper[upper.length-1], points[i]) <= 0) {
                 upper.pop();
@@ -496,6 +496,10 @@ function dist(x1, y1, x2, y2) {
     return Math.hypot(x1 - x2, y1 - y2);
 }
 
+function distSq(a, b) {
+    return (a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y);
+}
+
 function cross(a, b, o) {
     return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
 }
@@ -520,7 +524,9 @@ let util = {
     getRandomElem: getRandomElem,
     getRandomInt: getRandomInt,
     clamp: clamp,
-    dist: dist
+    dist: dist,
+    distSq: distSq,
+    convexHull: convexHull
 };
 
 
