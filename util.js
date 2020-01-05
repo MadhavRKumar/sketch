@@ -69,7 +69,8 @@ function drawRect(params) {
             center,
             w,
             h,
-            noFill = false
+            fill = false,
+            stroke = true
         }
             = params;
 
@@ -94,6 +95,8 @@ function drawRect(params) {
     }
     
     path.closePath();
+
+    return path;
 
 }
 
@@ -504,8 +507,35 @@ function cross(a, b, o) {
     return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
 }
 
+function circlePack(options) {
+    let {
+        maxSize = 100, 
+        tryLimit = 50, 
+        inc = 1,
+        hMargin = 0,
+        wMargin = 0
+    } 
+    = options;
+    let circles = [];
 
+    let i = 0;
 
+    while(i < tryLimit) {
+      let circ = {x: getRandom(wMargin, width-wMargin), y: getRandom(hMargin, height-hMargin), r: 1};
+      let leeway = getRandom(0.1, 2);
+      if(isValidCircle(circ, circles,leeway)) {
+        i = 0;
+        while(isValidCircle(circ, circles,leeway) && (circ.r < maxSize)) {
+          circ.r += inc;
+        }
+
+        circles.push(circ);
+      }
+
+      i++;
+    }
+
+}
 let util = {
     drawCurve: drawCurve,
     intersects: intersects,
