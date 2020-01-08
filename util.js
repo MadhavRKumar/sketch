@@ -513,16 +513,19 @@ function circlePack(options) {
         tryLimit = 50, 
         inc = 1,
         hMargin = 0,
-        wMargin = 0
+        wMargin = 0,
+        width,
+        height
     } 
     = options;
     let circles = [];
+    console.log(hMargin);
 
     let i = 0;
 
     while(i < tryLimit) {
       let circ = {x: getRandom(wMargin, width-wMargin), y: getRandom(hMargin, height-hMargin), r: 1};
-      let leeway = getRandom(0.1, 2);
+      let leeway = getRandom(1, 1);
       if(isValidCircle(circ, circles,leeway)) {
         i = 0;
         while(isValidCircle(circ, circles,leeway) && (circ.r < maxSize)) {
@@ -534,6 +537,27 @@ function circlePack(options) {
 
       i++;
     }
+          
+    function isValidCircle(circ, circles, leeway) {
+        for(c of circles) {
+          let x = (c.x - circ.x);
+          let x2 = x*x;
+
+          let y = (c.y - circ.y);
+          let y2 = y*y;
+
+          let r = circ.r + c.r;
+          let r2 = r*r;
+
+          if((x2 + y2) < (r2*leeway)) {
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      return circles;
 
 }
 let util = {
@@ -556,7 +580,8 @@ let util = {
     clamp: clamp,
     dist: dist,
     distSq: distSq,
-    convexHull: convexHull
+    convexHull: convexHull,
+    circlePack: circlePack
 };
 
 
