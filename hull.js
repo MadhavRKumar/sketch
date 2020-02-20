@@ -17,7 +17,7 @@ const sketch = () => {
       {
         bg: "#e0e0e0",
         fills: [
-          { value: "#830000", weight: 5 },
+          { value: "#3b7253", weight: 50},
           { value: "#333333", weight: 200 }
         ]
       }
@@ -31,56 +31,56 @@ const sketch = () => {
 
     let wMargin = width / 20;
     let hMargin = height / 20;
-
-
-    let N = 2000;
+    
+    let N = 8000;
     let points = [];
 
 
-    // for(let i = 0; i < N; i++) {
-    //   let a = util.getRandom(0, 2*Math.PI)
-    //   let r = (width/2)*Math.sqrt(random.value());
 
-    //   let x = width/2 + r * Math.cos(a);
-    //   let y = height/2 + r * Math.sin(a);
+    for(let i = 0; i < N; i++) {
+      let a = util.getRandom(0, 2*Math.PI)
+      let r = ((width/2)-wMargin)*Math.sqrt(random.value());
 
-    //   // let p = {x:util.getRandom(wMargin, width-wMargin),
-    //   //   y: util.getRandom(wMargin, width-wMargin)};
+      let x = width/2 + r * Math.cos(a);
+      let y = height/2 + r * Math.sin(a);
 
-    //     let p = {x,y}
-    //   points.push(p);
+      let p = {x:util.getRandom(wMargin, width-wMargin),
+        y: util.getRandom(wMargin, width-wMargin)};
 
-    //   // context.beginPath();
-    //   // context.arc(p.x, p.y, 5, 0, Math.PI*2);
-    //   // context.fill();
-    //   // context.closePath();
-    // }
+        p = {x,y}
+      points.push(p);
 
-    points = util.poisson(
-      {
-        context,
-        r: 20,
-        min: { x: wMargin, y: hMargin },
-        max: { x: width - wMargin, y: height - hMargin }
-      }
-    )
-
-    let clusters = kMeans(points, util.getRandomInt(5, 50), { x: wMargin, y: hMargin }, { x: width - wMargin, y: height - hMargin });
-
-    for (let i = 0; i < clusters.length; i++) {
-      if (random.value() > 0) {
-        let pts = clusters[i];
-        let min = localMinMax(pts);
-        console.log({min})
-        console.log(pts);
-        //let clust = kMeans(pts, util.getRandomInt(2, 3), min, max);
-        break;
-        //clusters.splice(i, 1, ...clust)
-      }
 
     }
 
-    console.log(clusters);
+    // points = util.poisson(
+    //   {
+    //     context,
+    //     r: 10,
+    //     min: { x: wMargin, y: hMargin },
+    //     max: { x: width - wMargin, y: height - hMargin }
+    //   }
+    // )
+
+
+
+    let clusters = kMeans(points, util.getRandomInt(8, 30), { x: wMargin, y: hMargin }, { x: width - wMargin, y: height - hMargin });
+
+
+    for (let i = 0; i < clusters.length; i++) {
+      if(random.value() > 0.5) {
+        let pts = clusters[i];
+
+        let clust = kMeans(pts, util.getRandomInt(2, 4), { x: wMargin, y: hMargin }, { x: width - wMargin, y: height - hMargin });
+
+        clusters.splice(i, 1, ...clust)
+      }
+       
+      
+
+    }
+
+
     for (points of clusters) {
 
       context.fillStyle = random.weightedSet(palette.fills);
@@ -99,14 +99,18 @@ const sketch = () => {
 
 
           if (random.value() > 0.5) {
+            let xOff = util.getRandom(-10, 10);
+            let yOff = util.getRandom(-10, 10);
+            let blur = util.getRandom(10, 20);
+            context.filter = `drop-shadow(${xOff}px ${yOff}px ${blur}px #666666)`;
             context.fill(path);
           }
-          else {
+          else { 
+            context.filter = "none";
             context.stroke(path);
           }
         }
       }
-
     }
     function kMeans(points, k, min, max) {
       let centroids = [];
@@ -122,7 +126,7 @@ const sketch = () => {
 
 
 
-      let iterations = 20;
+      let iterations = 50;
 
       for (let i = 0; i < iterations; i++) {
         for (let j = 0; j < k; j++) {
