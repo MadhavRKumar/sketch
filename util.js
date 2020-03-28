@@ -295,7 +295,7 @@ function drawQuadraticLine(params) {
     }
     let prev = getQuadraticPoint(points, 0);
     ps.push(prev);
-    for (let t = inc; t <= 1; t += inc) {
+    for (let t = inc; t <= 1+inc; t += inc) {
         let cur = getQuadraticPoint(points, t);
         ps.push(cur);
         if (draw) {
