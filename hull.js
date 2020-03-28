@@ -32,26 +32,35 @@ const sketch = () => {
     let wMargin = width / 20;
     let hMargin = height / 20;
     
-    let N = 8000;
+    let N = 2000;
     let points = [];
 
-
-
-    for(let i = 0; i < N; i++) {
-      let a = util.getRandom(0, 2*Math.PI)
-      let r = ((width/2)-wMargin)*Math.sqrt(random.value());
-
-      let x = width/2 + r * Math.cos(a);
-      let y = height/2 + r * Math.sin(a);
-
-      let p = {x:util.getRandom(wMargin, width-wMargin),
-        y: util.getRandom(wMargin, width-wMargin)};
-
-        p = {x,y}
-      points.push(p);
-
-
+    let inc = 10;
+    let maxSize = width/15;
+    let circles = util.circlePack({maxSize, inc, wMargin, hMargin, width, height});
+    circles = circles.filter((c) => {return c.r > width/50})
+    for(circ of circles) {
+      // context.beginPath();
+      // context.arc(circ.x, circ.y, circ.r, 0, Math.PI*2);
+      // context.stroke();
+      // context.closePath();
+      for(let i = 0; i < N; i++) {
+        let a = util.getRandom(0, 2*Math.PI)
+        let r = (circ.r)*Math.sqrt(random.value());
+  
+        let x = circ.x + r * Math.cos(a);
+        let y = circ.y + r * Math.sin(a);
+  
+        let p = {x:util.getRandom(wMargin, width-wMargin),
+          y: util.getRandom(wMargin, width-wMargin)};
+  
+          p = {x,y}
+        points.push(p);
+  
+  
+      }
     }
+
 
     // points = util.poisson(
     //   {
@@ -64,25 +73,26 @@ const sketch = () => {
 
 
 
-    let clusters = kMeans(points, util.getRandomInt(8, 30), { x: wMargin, y: hMargin }, { x: width - wMargin, y: height - hMargin });
+    let [clusters, centroids] = kMeans(points, util.getRandomInt(8,50), { x: wMargin, y: hMargin }, { x: width - wMargin, y: height - hMargin });
 
 
     for (let i = 0; i < clusters.length; i++) {
       if(random.value() > 0.5) {
         let pts = clusters[i];
 
-        let clust = kMeans(pts, util.getRandomInt(2, 4), { x: wMargin, y: hMargin }, { x: width - wMargin, y: height - hMargin });
+        let [clust, cent] = kMeans(pts, util.getRandomInt(2, 4), { x: wMargin, y: hMargin }, { x: width - wMargin, y: height - hMargin });
 
-        clusters.splice(i, 1, ...clust)
+        clusters.splice(i, 1, ...clust);
+        centroids.splice(i, 1, ...cent);
       }
        
       
 
     }
 
-
+    let centInd = 0;
     for (points of clusters) {
-
+      let cents = centroids[centInd];
       context.fillStyle = random.weightedSet(palette.fills);
       context.strokeStyle = random.weightedSet(palette.fills);
       let pts = util.convexHull(points);
@@ -91,19 +101,18 @@ const sketch = () => {
         path.moveTo(pts[0].x, pts[0].y);
         for (let i = 1; i <= pts.length; i++) {
           let p1 = pts[i % pts.length];
-          context.lineWidth = 10;
           path.lineTo(p1.x, p1.y);
         }
         path.closePath();
-        if (random.value() < 0.80) {
+        if (random.value() < 10.80) {
 
 
-          if (random.value() > 0.5) {
-            let xOff = util.getRandom(-10, 10);
-            let yOff = util.getRandom(-10, 10);
-            let blur = util.getRandom(10, 20);
-            context.filter = `drop-shadow(${xOff}px ${yOff}px ${blur}px #666666)`;
+          if (random.value() > 0) {
+            
             context.fill(path);
+            context.strokeStyle = palette.bg;
+            context.lineWidth = util.getRandom(1, 30);
+            context.stroke(path);
           }
           else { 
             context.filter = "none";
@@ -111,6 +120,8 @@ const sketch = () => {
           }
         }
       }
+
+      centInd++;
     }
     function kMeans(points, k, min, max) {
       let centroids = [];
@@ -165,7 +176,7 @@ const sketch = () => {
         }
       }
 
-      return clusters;
+      return [clusters, centroids];
 
     }
 
