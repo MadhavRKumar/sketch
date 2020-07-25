@@ -89,11 +89,11 @@ function drawRect(params) {
         context.fill(path);
 
     }
-    
+
     if(stroke) {
         context.stroke(path);
     }
-    
+
     path.closePath();
 
     return path;
@@ -447,7 +447,7 @@ function convexHull(points) {
     let upper = [];
 
     for(let i = points.length - 1; i >= 0; i--) {
-        while(upper.length >= 2 && 
+        while(upper.length >= 2 &&
             cross(upper[upper.length-2], upper[upper.length-1], points[i]) <= 0) {
                 upper.pop();
             }
@@ -509,14 +509,14 @@ function cross(a, b, o) {
 
 function circlePack(options) {
     let {
-        maxSize = 100, 
-        tryLimit = 50, 
+        maxSize = 100,
+        tryLimit = 50,
         inc = 1,
         hMargin = 0,
         wMargin = 0,
         width,
         height
-    } 
+    }
     = options;
     let circles = [];
     console.log(hMargin);
@@ -537,7 +537,7 @@ function circlePack(options) {
 
       i++;
     }
-          
+
     function isValidCircle(circ, circles, leeway) {
         for(c of circles) {
           let x = (c.x - circ.x);
@@ -560,6 +560,15 @@ function circlePack(options) {
       return circles;
 
 }
+
+function line(start, end, ctx) {
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(end.x, end.y);
+    ctx.closePath();
+    ctx.stroke();
+
+}
 let util = {
     drawCurve: drawCurve,
     intersects: intersects,
@@ -574,6 +583,7 @@ let util = {
     getRandom: getRandom,
     map: map,
     lerp: lerp,
+    line: line,
     quadMap: quadMap,
     getRandomElem: getRandomElem,
     getRandomInt: getRandomInt,
